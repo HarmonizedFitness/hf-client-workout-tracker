@@ -10,7 +10,9 @@ export const muscleGroupColors = {
   'Arms (Triceps)': 'bg-teal-100 border-teal-300 text-teal-800',
   'Calves': 'bg-indigo-100 border-indigo-300 text-indigo-800',
   'Core': 'bg-green-100 border-green-300 text-green-800',
-  'Abdominals': 'bg-lime-100 border-lime-300 text-lime-800'
+  'Abdominals': 'bg-lime-100 border-lime-300 text-lime-800',
+  'Hip Abductors': 'bg-rose-100 border-rose-300 text-rose-800',
+  'Hips': 'bg-amber-100 border-amber-300 text-amber-800'
 };
 
 export const getMuscleGroupColor = (muscleGroup: string): string => {
