@@ -10,7 +10,7 @@ export interface Exercise {
 export interface WorkoutSet {
   id: string;
   exerciseId: string;
-  sets: number;
+  setNumber: number;
   reps: number;
   weight: number;
   date: string;
@@ -30,7 +30,7 @@ export interface PersonalRecord {
   exerciseName: string;
   weight: number;
   date: string;
-  sets: number;
+  setNumber: number;
   reps: number;
 }
 

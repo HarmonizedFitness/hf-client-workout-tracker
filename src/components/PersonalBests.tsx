@@ -35,8 +35,9 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
   };
 
   const getTopPR = () => {
-    return client.personalRecords.reduce((max, pr) => pr.weight > max.weight ? pr : max, 
-      { weight: 0, exerciseName: 'None' });
+    return client.personalRecords.length > 0 
+      ? client.personalRecords.reduce((max, pr) => pr.weight > max.weight ? pr : max, client.personalRecords[0])
+      : { weight: 0, exerciseName: 'None' };
   };
 
   const topPR = getTopPR();
@@ -55,7 +56,7 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
         <Card>
           <CardContent className="text-center p-4">
             <Target className="h-8 w-8 text-green-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-primary">{topPR.weight}kg</div>
+            <div className="text-2xl font-bold text-primary">{topPR.weight} lbs</div>
             <p className="text-sm text-muted-foreground">Heaviest Lift</p>
           </CardContent>
         </Card>
@@ -109,15 +110,15 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">{pb.weight}kg</div>
+                  <div className="text-3xl font-bold text-primary">{pb.weight} lbs</div>
                   <p className="text-sm text-muted-foreground">Personal Best</p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex items-center gap-1">
                     <TrendingUp className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">Sets:</span>
-                    <span className="font-medium">{pb.sets}</span>
+                    <span className="text-muted-foreground">Set:</span>
+                    <span className="font-medium">{pb.setNumber}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <TrendingUp className="h-3 w-3 text-muted-foreground" />
