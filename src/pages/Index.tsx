@@ -1,4 +1,5 @@
 
+
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +27,7 @@ const Index = () => {
             <Dumbbell className="h-10 w-10 text-burnt-orange dark:text-burnt-orange" />
             Harmonized Strength Log
           </h1>
-          <p className="text-slate-600 dark:text-slate-300 text-lg">Professional Personal Training Client Management System</p>
+          <p className="text-lg bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 dark:from-orange-400 dark:via-red-400 dark:to-orange-500 bg-clip-text text-transparent font-medium">Professional Personal Training Client Management System</p>
         </div>
 
         {/* Main Navigation Tabs */}
@@ -202,3 +203,4 @@ const Index = () => {
 };
 
 export default Index;
+
