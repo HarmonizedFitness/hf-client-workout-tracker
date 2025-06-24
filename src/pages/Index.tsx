@@ -7,7 +7,7 @@ import SessionLogger from '@/components/SessionLogger';
 import PersonalBests from '@/components/PersonalBests';
 import ClientSelector from '@/components/ClientSelector';
 import { Client } from '@/types/exercise';
-import { Dumbbell, Trophy, BookOpen, Plus, Users } from 'lucide-react';
+import { Dumbbell, Trophy, BookOpen, Plus, Users, Calendar, DollarSign } from 'lucide-react';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('clients');
@@ -36,11 +36,11 @@ const Index = () => {
               <BookOpen className="h-4 w-4" />
               Exercise Library
             </TabsTrigger>
-            <TabsTrigger value="session" className="flex items-center gap-2 text-sm" disabled={!selectedClient}>
+            <TabsTrigger value="session" className="flex items-center gap-2 text-sm" disabled={!selectedClient?.isActive}>
               <Plus className="h-4 w-4" />
               Log Session
             </TabsTrigger>
-            <TabsTrigger value="records" className="flex items-center gap-2 text-sm" disabled={!selectedClient}>
+            <TabsTrigger value="records" className="flex items-center gap-2 text-sm" disabled={!selectedClient?.isActive}>
               <Trophy className="h-4 w-4" />
               Personal Records
             </TabsTrigger>
@@ -53,16 +53,16 @@ const Index = () => {
               onClientSelect={setSelectedClient} 
             />
             
-            {selectedClient && (
+            {selectedClient && selectedClient.isActive && (
               <Card>
                 <CardHeader>
                   <CardTitle>Client Overview: {selectedClient.name}</CardTitle>
                   <CardDescription>
-                    Member since {new Date(selectedClient.dateJoined).toLocaleDateString()}
+                    Active member since {new Date(selectedClient.dateJoined).toLocaleDateString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">
                         {selectedClient.personalRecords.length}
@@ -81,7 +81,36 @@ const Index = () => {
                       </div>
                       <p className="text-sm text-purple-800">Heaviest Lift</p>
                     </div>
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <Calendar className="h-6 w-6 text-orange-600 mx-auto mb-1" />
+                      <div className="text-2xl font-bold text-orange-600">
+                        {selectedClient.trainingDaysPerWeek}
+                      </div>
+                      <p className="text-sm text-orange-800">Days/Week</p>
+                    </div>
+                    <div className="text-center p-4 bg-emerald-50 rounded-lg">
+                      <DollarSign className="h-6 w-6 text-emerald-600 mx-auto mb-1" />
+                      <div className="text-2xl font-bold text-emerald-600">
+                        ${selectedClient.costPerSession}
+                      </div>
+                      <p className="text-sm text-emerald-800">Per Session</p>
+                    </div>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {selectedClient && !selectedClient.isActive && (
+              <Card className="border-orange-200 bg-orange-50">
+                <CardContent className="text-center py-8">
+                  <Archive className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-orange-800 mb-2">
+                    {selectedClient.name} is Archived
+                  </h3>
+                  <p className="text-orange-600">
+                    This client was archived on {selectedClient.dateArchived ? new Date(selectedClient.dateArchived).toLocaleDateString() : 'Unknown date'}. 
+                    Their data is preserved and they can be restored anytime.
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -107,7 +136,7 @@ const Index = () => {
 
           {/* Session Logger Tab */}
           <TabsContent value="session" className="space-y-6">
-            {selectedClient ? (
+            {selectedClient && selectedClient.isActive ? (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -126,7 +155,9 @@ const Index = () => {
               <Card>
                 <CardContent className="text-center py-12">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Please select a client first to log a workout session.</p>
+                  <p className="text-muted-foreground">
+                    Please select an active client first to log a workout session.
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -134,7 +165,7 @@ const Index = () => {
 
           {/* Personal Records Tab */}
           <TabsContent value="records" className="space-y-6">
-            {selectedClient ? (
+            {selectedClient && selectedClient.isActive ? (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -153,7 +184,9 @@ const Index = () => {
               <Card>
                 <CardContent className="text-center py-12">
                   <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Please select a client first to view their personal records.</p>
+                  <p className="text-muted-foreground">
+                    Please select an active client first to view their personal records.
+                  </p>
                 </CardContent>
               </Card>
             )}

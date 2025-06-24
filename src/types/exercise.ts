@@ -40,6 +40,10 @@ export interface Client {
   email?: string;
   phone?: string;
   dateJoined: string;
+  isActive: boolean;
+  trainingDaysPerWeek: number;
+  costPerSession: number;
+  dateArchived?: string;
   personalRecords: PersonalRecord[];
   workoutHistory: WorkoutSession[];
 }
