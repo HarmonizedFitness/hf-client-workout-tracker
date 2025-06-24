@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +23,7 @@ const Index = () => {
             <ThemeToggle />
           </div>
           <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center justify-center gap-3">
-            <Dumbbell className="h-10 w-10 text-blue-600 dark:text-burnt-orange" />
+            <Dumbbell className="h-10 w-10 text-burnt-orange dark:text-burnt-orange" />
             Harmonized Strength Log
           </h1>
           <p className="text-slate-600 dark:text-slate-300 text-lg">Professional Personal Training Client Management System</p>
