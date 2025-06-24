@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import SessionLogger from '@/components/SessionLogger';
 import PersonalBests from '@/components/PersonalBests';
 import ClientSelector from '@/components/ClientSelector';
 import { Client } from '@/types/exercise';
-import { Dumbbell, Trophy, BookOpen, Plus, Users, Calendar, DollarSign } from 'lucide-react';
+import { Dumbbell, Trophy, BookOpen, Plus, Users, Calendar, DollarSign, Archive } from 'lucide-react';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('clients');
