@@ -13,8 +13,8 @@ export const mockClients: Client[] = [
     trainingDaysPerWeek: 3,
     costPerSession: 75,
     personalRecords: [
-      { exerciseId: '34', exerciseName: 'Barbell Squat', weight: 225, date: '2024-02-20', sets: 3, reps: 5 },
-      { exerciseId: '16', exerciseName: 'Barbell Bench Press ( Flat )', weight: 185, date: '2024-02-18', sets: 3, reps: 5 },
+      { exerciseId: '34', exerciseName: 'Barbell Squat', weight: 225, date: '2024-02-20', setNumber: 1, reps: 5 },
+      { exerciseId: '16', exerciseName: 'Barbell Bench Press ( Flat )', weight: 185, date: '2024-02-18', setNumber: 1, reps: 5 },
     ],
     workoutHistory: []
   },
@@ -28,8 +28,8 @@ export const mockClients: Client[] = [
     trainingDaysPerWeek: 4,
     costPerSession: 80,
     personalRecords: [
-      { exerciseId: '34', exerciseName: 'Barbell Squat', weight: 135, date: '2024-02-22', sets: 3, reps: 8 },
-      { exerciseId: '46', exerciseName: 'Romanian Deadlift', weight: 155, date: '2024-02-19', sets: 3, reps: 6 },
+      { exerciseId: '34', exerciseName: 'Barbell Squat', weight: 135, date: '2024-02-22', setNumber: 1, reps: 8 },
+      { exerciseId: '46', exerciseName: 'Romanian Deadlift', weight: 155, date: '2024-02-19', setNumber: 1, reps: 6 },
     ],
     workoutHistory: []
   },
@@ -44,8 +44,8 @@ export const mockClients: Client[] = [
     costPerSession: 65,
     dateArchived: '2024-06-15',
     personalRecords: [
-      { exerciseId: '49', exerciseName: 'Conventional Deadlift', weight: 315, date: '2024-02-21', sets: 1, reps: 3 },
-      { exerciseId: '64', exerciseName: 'Overhead Press (Military Press)', weight: 135, date: '2024-02-20', sets: 3, reps: 5 },
+      { exerciseId: '49', exerciseName: 'Conventional Deadlift', weight: 315, date: '2024-02-21', setNumber: 1, reps: 3 },
+      { exerciseId: '64', exerciseName: 'Overhead Press (Military Press)', weight: 135, date: '2024-02-20', setNumber: 1, reps: 5 },
     ],
     workoutHistory: []
   }
