@@ -6,20 +6,31 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { initialExercises } from '@/data/exerciseData';
 import { getMuscleGroupColor } from '@/utils/muscleGroupColors';
-import { WorkoutSet } from '@/types/exercise';
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { WorkoutSet, WorkoutSession, Client, PersonalRecord } from '@/types/exercise';
+import { Plus, Save, Trash2, Trophy, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-const SessionLogger = () => {
+interface SessionLoggerProps {
+  client: Client;
+}
+
+const SessionLogger = ({ client }: SessionLoggerProps) => {
   const [selectedExercise, setSelectedExercise] = useState('');
   const [sets, setSets] = useState('');
   const [reps, setReps] = useState('');
   const [weight, setWeight] = useState('');
   const [sessionSets, setSessionSets] = useState<WorkoutSet[]>([]);
+  const [sessionNotes, setSessionNotes] = useState('');
 
   const exercise = initialExercises.find(ex => ex.id === selectedExercise);
+
+  const checkForPR = (exerciseId: string, newWeight: number): boolean => {
+    const existingPR = client.personalRecords.find(pr => pr.exerciseId === exerciseId);
+    return !existingPR || newWeight > existingPR.weight;
+  };
 
   const addSet = () => {
     if (!selectedExercise || !sets || !reps || !weight) {
@@ -31,13 +42,17 @@ const SessionLogger = () => {
       return;
     }
 
+    const weightNum = parseFloat(weight);
+    const isPR = checkForPR(selectedExercise, weightNum);
+
     const newSet: WorkoutSet = {
       id: Date.now().toString(),
       exerciseId: selectedExercise,
       sets: parseInt(sets),
       reps: parseInt(reps),
-      weight: parseFloat(weight),
+      weight: weightNum,
       date: new Date().toISOString().split('T')[0],
+      isPB: isPR,
     };
 
     setSessionSets([...sessionSets, newSet]);
@@ -48,8 +63,10 @@ const SessionLogger = () => {
     setWeight('');
 
     toast({
-      title: "Set Added!",
-      description: `${exercise?.name}: ${sets} sets × ${reps} reps @ ${weight}kg`,
+      title: isPR ? "🎉 New Personal Record!" : "Set Added!",
+      description: isPR 
+        ? `${exercise?.name}: ${weight}kg - New PR for ${client.name}!`
+        : `${exercise?.name}: ${sets} sets × ${reps} reps @ ${weight}kg`,
     });
   };
 
@@ -58,6 +75,32 @@ const SessionLogger = () => {
     toast({
       title: "Set Removed",
       description: "The set has been removed from your session.",
+    });
+  };
+
+  const updatePersonalRecords = (sets: WorkoutSet[]) => {
+    sets.forEach(set => {
+      if (set.isPB) {
+        const exercise = initialExercises.find(ex => ex.id === set.exerciseId);
+        if (exercise) {
+          const newPR: PersonalRecord = {
+            exerciseId: set.exerciseId,
+            exerciseName: exercise.name,
+            weight: set.weight,
+            date: set.date,
+            sets: set.sets,
+            reps: set.reps,
+          };
+
+          // Update or add PR
+          const existingIndex = client.personalRecords.findIndex(pr => pr.exerciseId === set.exerciseId);
+          if (existingIndex >= 0) {
+            client.personalRecords[existingIndex] = newPR;
+          } else {
+            client.personalRecords.push(newPR);
+          }
+        }
+      }
     });
   };
 
@@ -71,15 +114,30 @@ const SessionLogger = () => {
       return;
     }
 
-    // Here you would typically save to a database
-    console.log('Saving session:', sessionSets);
+    const newSession: WorkoutSession = {
+      id: Date.now().toString(),
+      clientId: client.id,
+      date: new Date().toISOString().split('T')[0],
+      sets: sessionSets,
+      notes: sessionNotes.trim() || undefined,
+    };
+
+    // Update personal records
+    updatePersonalRecords(sessionSets);
+
+    // Add session to client history
+    client.workoutHistory.push(newSession);
+
+    const prCount = sessionSets.filter(set => set.isPB).length;
     
     toast({
       title: "Session Saved!",
-      description: `Saved ${sessionSets.length} sets from your workout session.`,
+      description: `Saved ${sessionSets.length} sets for ${client.name}${prCount > 0 ? ` with ${prCount} new PR${prCount > 1 ? 's' : ''}!` : '.'}`,
     });
 
+    // Reset form
     setSessionSets([]);
+    setSessionNotes('');
   };
 
   const getExerciseFromSet = (set: WorkoutSet) => {
@@ -125,6 +183,13 @@ const SessionLogger = () => {
                   {exercise.muscleGroup}
                 </Badge>
                 <Badge variant="outline">{exercise.forceType}</Badge>
+                {/* Show current PR if exists */}
+                {client.personalRecords.find(pr => pr.exerciseId === exercise.id) && (
+                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                    <Trophy className="h-3 w-3 mr-1" />
+                    PR: {client.personalRecords.find(pr => pr.exerciseId === exercise.id)?.weight}kg
+                  </Badge>
+                )}
               </div>
               {exercise.notes && (
                 <p className="text-sm text-muted-foreground">{exercise.notes}</p>
@@ -180,24 +245,38 @@ const SessionLogger = () => {
       {sessionSets.length > 0 && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Current Session ({sessionSets.length} sets)</CardTitle>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Current Session ({sessionSets.length} sets)
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                {sessionSets.filter(set => set.isPB).length} Personal Record{sessionSets.filter(set => set.isPB).length !== 1 ? 's' : ''}
+              </p>
+            </div>
             <Button onClick={saveSession} className="bg-green-600 hover:bg-green-700">
               <Save className="h-4 w-4 mr-2" />
               Save Session
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="space-y-3">
               {sessionSets.map((set, index) => {
                 const exercise = getExerciseFromSet(set);
                 return (
-                  <div key={set.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={set.id} className={`flex items-center justify-between p-3 border rounded-lg ${set.isPB ? 'border-yellow-300 bg-yellow-50' : ''}`}>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium">{exercise?.name}</span>
                         <Badge className={`${getMuscleGroupColor(exercise?.muscleGroup || '')} text-xs`}>
                           {exercise?.muscleGroup}
                         </Badge>
+                        {set.isPB && (
+                          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                            <Trophy className="h-3 w-3 mr-1" />
+                            NEW PR!
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {set.sets} sets × {set.reps} reps @ {set.weight}kg
@@ -215,6 +294,17 @@ const SessionLogger = () => {
                 );
               })}
             </div>
+
+            <div>
+              <Label htmlFor="session-notes">Session Notes (Optional)</Label>
+              <Textarea
+                id="session-notes"
+                placeholder="Add any notes about this workout session..."
+                value={sessionNotes}
+                onChange={(e) => setSessionNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
           </CardContent>
         </Card>
       )}
@@ -223,7 +313,7 @@ const SessionLogger = () => {
         <Card>
           <CardContent className="text-center py-12">
             <p className="text-muted-foreground mb-4">No sets logged yet for this session.</p>
-            <p className="text-sm text-muted-foreground">Select an exercise above and start tracking your workout!</p>
+            <p className="text-sm text-muted-foreground">Select an exercise above and start tracking {client.name}'s workout!</p>
           </CardContent>
         </Card>
       )}

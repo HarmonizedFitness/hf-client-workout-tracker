@@ -17,11 +17,29 @@ export interface WorkoutSet {
   isPB?: boolean;
 }
 
-export interface PersonalBest {
+export interface WorkoutSession {
+  id: string;
+  clientId: string;
+  date: string;
+  sets: WorkoutSet[];
+  notes?: string;
+}
+
+export interface PersonalRecord {
   exerciseId: string;
   exerciseName: string;
   weight: number;
   date: string;
   sets: number;
   reps: number;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  dateJoined: string;
+  personalRecords: PersonalRecord[];
+  workoutHistory: WorkoutSession[];
 }

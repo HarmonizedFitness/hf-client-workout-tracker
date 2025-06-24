@@ -5,25 +5,21 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { initialExercises } from '@/data/exerciseData';
 import { getMuscleGroupColor } from '@/utils/muscleGroupColors';
-import { Trophy, TrendingUp, Calendar } from 'lucide-react';
+import { Client } from '@/types/exercise';
+import { Trophy, TrendingUp, Calendar, Target } from 'lucide-react';
 
-// Mock data for personal bests - in a real app this would come from a database
-const mockPersonalBests = [
-  { exerciseId: '22', exerciseName: 'Barbell Squat', weight: 120, date: '2024-01-15', sets: 3, reps: 5 },
-  { exerciseId: '11', exerciseName: 'Barbell Bench Press ( Flat )', weight: 100, date: '2024-01-10', sets: 3, reps: 5 },
-  { exerciseId: '30', exerciseName: 'Romanian Deadlift', weight: 140, date: '2024-01-20', sets: 3, reps: 5 },
-  { exerciseId: '9', exerciseName: 'Machine Lat Pulldown', weight: 80, date: '2024-01-12', sets: 3, reps: 8 },
-  { exerciseId: '37', exerciseName: 'Dumbbell External Isolation', weight: 15, date: '2024-01-08', sets: 3, reps: 12 },
-];
+interface PersonalBestsProps {
+  client: Client;
+}
 
-const PersonalBests = () => {
+const PersonalBests = ({ client }: PersonalBestsProps) => {
   const [muscleGroupFilter, setMuscleGroupFilter] = useState('all');
 
   const getExercise = (exerciseId: string) => {
     return initialExercises.find(ex => ex.id === exerciseId);
   };
 
-  const filteredPBs = mockPersonalBests.filter(pb => {
+  const filteredPBs = client.personalRecords.filter(pb => {
     const exercise = getExercise(pb.exerciseId);
     return muscleGroupFilter === 'all' || exercise?.muscleGroup === muscleGroupFilter;
   });
@@ -38,8 +34,47 @@ const PersonalBests = () => {
     });
   };
 
+  const getTopPR = () => {
+    return client.personalRecords.reduce((max, pr) => pr.weight > max.weight ? pr : max, 
+      { weight: 0, exerciseName: 'None' });
+  };
+
+  const topPR = getTopPR();
+
   return (
     <div className="space-y-6">
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="text-center p-4">
+            <Trophy className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-primary">{client.personalRecords.length}</div>
+            <p className="text-sm text-muted-foreground">Total PRs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="text-center p-4">
+            <Target className="h-8 w-8 text-green-500 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-primary">{topPR.weight}kg</div>
+            <p className="text-sm text-muted-foreground">Heaviest Lift</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="text-center p-4">
+            <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-primary">
+              {client.personalRecords.filter(pr => {
+                const prDate = new Date(pr.date);
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                return prDate >= thirtyDaysAgo;
+              }).length}
+            </div>
+            <p className="text-sm text-muted-foreground">PRs This Month</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Filter */}
       <div className="flex items-center gap-4">
         <Select value={muscleGroupFilter} onValueChange={setMuscleGroupFilter}>
@@ -55,7 +90,7 @@ const PersonalBests = () => {
         </Select>
       </div>
 
-      {/* Personal Bests Grid */}
+      {/* Personal Records Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredPBs.map((pb, index) => {
           const exercise = getExercise(pb.exerciseId);
@@ -106,14 +141,24 @@ const PersonalBests = () => {
         <Card>
           <CardContent className="text-center py-12">
             <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-2">No personal bests found for this filter.</p>
-            <p className="text-sm text-muted-foreground">Start logging workouts to track your progress!</p>
+            <p className="text-muted-foreground mb-2">
+              {client.personalRecords.length === 0 
+                ? `${client.name} hasn't set any personal records yet.`
+                : 'No personal records found for this filter.'
+              }
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {client.personalRecords.length === 0 
+                ? 'Start logging workouts to track progress!'
+                : 'Try adjusting the muscle group filter.'
+              }
+            </p>
           </CardContent>
         </Card>
       )}
 
       <div className="text-center text-sm text-muted-foreground pt-4 border-t">
-        Showing {filteredPBs.length} personal best records
+        Showing {filteredPBs.length} of {client.personalRecords.length} personal records for {client.name}
       </div>
     </div>
   );
