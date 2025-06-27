@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,12 +8,14 @@ import { Users, Calendar, Trophy, Target, Plus, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageLayout from '@/components/PageLayout';
 import { useClient } from '@/context/ClientContext';
-
 const Home = () => {
   const [localSelectedClient, setLocalSelectedClient] = useState<SupabaseClient | null>(null);
-  const { setSelectedClient } = useClient();
-  const { activeClients } = useSupabaseClients();
-
+  const {
+    setSelectedClient
+  } = useClient();
+  const {
+    activeClients
+  } = useSupabaseClients();
   const handleClientSelect = (client: SupabaseClient) => {
     setLocalSelectedClient(client);
     setSelectedClient(client); // Update global context
@@ -24,12 +25,8 @@ const Home = () => {
   const totalActiveClients = activeClients.length;
   const totalSessionsThisMonth = 0; // This would need to be calculated from workout sessions
   const totalLivesImpacted = activeClients.length;
-  const weeklySessionsPlanned = activeClients.reduce((sum, client) => 
-    sum + client.training_days_per_week, 0
-  );
-
-  return (
-    <PageLayout>
+  const weeklySessionsPlanned = activeClients.reduce((sum, client) => sum + client.training_days_per_week, 0);
+  return <PageLayout>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
@@ -107,8 +104,7 @@ const Home = () => {
           <CardContent>
             {/* Updated client selector to use SupabaseClient directly */}
             <div className="space-y-4">
-              {localSelectedClient && localSelectedClient.is_active && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              {localSelectedClient && localSelectedClient.is_active && <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2 text-green-800">
                     <Users className="h-4 w-4" />
                     <span className="font-medium">Selected: {localSelectedClient.name}</span>
@@ -117,28 +113,20 @@ const Home = () => {
                     <p>{localSelectedClient.training_days_per_week} days/week</p>
                     <p>${localSelectedClient.cost_per_session}/session</p>
                   </div>
-                </div>
-              )}
+                </div>}
 
-              <select 
-                value={localSelectedClient?.id || ''} 
-                onChange={(e) => {
-                  const client = activeClients.find(c => c.id === e.target.value);
-                  if (client) handleClientSelect(client);
-                }}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
+              <select value={localSelectedClient?.id || ''} onChange={e => {
+              const client = activeClients.find(c => c.id === e.target.value);
+              if (client) handleClientSelect(client);
+            }} className="w-full p-2 border border-gray-300 rounded-md bg-sky-950">
                 <option value="">Choose a client...</option>
-                {activeClients.map(client => (
-                  <option key={client.id} value={client.id}>
+                {activeClients.map(client => <option key={client.id} value={client.id}>
                     {client.name} ({client.training_days_per_week}x/week)
-                  </option>
-                ))}
+                  </option>)}
               </select>
             </div>
             
-            {localSelectedClient && localSelectedClient.is_active && (
-              <div className="mt-4 flex gap-2">
+            {localSelectedClient && localSelectedClient.is_active && <div className="mt-4 flex gap-2">
                 <Link to="/session">
                   <Button className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
@@ -151,8 +139,7 @@ const Home = () => {
                     View Records
                   </Button>
                 </Link>
-              </div>
-            )}
+              </div>}
           </CardContent>
         </Card>
 
@@ -187,8 +174,7 @@ const Home = () => {
       </div>
 
       {/* Recent Activity */}
-      {localSelectedClient && (
-        <Card className="mt-6">
+      {localSelectedClient && <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -211,10 +197,7 @@ const Home = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
-      )}
-    </PageLayout>
-  );
+        </Card>}
+    </PageLayout>;
 };
-
 export default Home;
