@@ -8,6 +8,9 @@ import { ClientProvider } from "@/context/ClientContext";
 import Home from "./pages/Home";
 import Clients from "./pages/Clients";
 import Analytics from "./pages/Analytics";
+import Session from "./pages/Session";
+import Records from "./pages/Records";
+import ExerciseLibrary from "./pages/ExerciseLibrary";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -24,9 +27,9 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/analytics" element={<Analytics />} />
-            <Route path="/session" element={<Index />} />
-            <Route path="/records" element={<Index />} />
-            <Route path="/library" element={<Index />} />
+            <Route path="/session" element={<Session />} />
+            <Route path="/records" element={<Records />} />
+            <Route path="/library" element={<ExerciseLibrary />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
