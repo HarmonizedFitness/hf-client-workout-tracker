@@ -1,7 +1,7 @@
 
 import { TabsContent } from "@/components/ui/tabs";
 import ClientSelector from './ClientSelector';
-import ExerciseLibrary from './ExerciseLibrary';
+import ExerciseLibrary from '../pages/ExerciseLibrary';
 import EnhancedSessionLogger from './EnhancedSessionLogger';
 import PersonalBests from './PersonalBests';
 import { Client } from '@/types/exercise';
