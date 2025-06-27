@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,12 +7,29 @@ import { Label } from "@/components/ui/label";
 import { getActiveClients } from '@/data/clientData';
 import { Client } from '@/types/exercise';
 import { Trophy, Users } from 'lucide-react';
+import { useClient } from '@/context/ClientContext';
 import PageLayout from '@/components/PageLayout';
 import PersonalBests from '@/components/PersonalBests';
 
 const Records = () => {
+  const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient } = useClient();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const activeClients = getActiveClients();
+
+  // Initialize with global client context on mount
+  useEffect(() => {
+    if (globalSelectedClient && globalSelectedClient.isActive) {
+      setSelectedClient(globalSelectedClient);
+    }
+  }, [globalSelectedClient]);
+
+  const handleClientSelect = (clientId: string) => {
+    const client = activeClients.find(c => c.id === clientId);
+    if (client) {
+      setSelectedClient(client);
+      setGlobalSelectedClient(client); // Update global context
+    }
+  };
 
   if (!selectedClient) {
     return (
@@ -36,10 +53,7 @@ const Records = () => {
                 <Label htmlFor="client-select">Choose a client to view their records</Label>
                 <Select 
                   value=""
-                  onValueChange={(clientId) => {
-                    const client = activeClients.find(c => c.id === clientId);
-                    if (client) setSelectedClient(client);
-                  }}
+                  onValueChange={handleClientSelect}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a client..." />

@@ -12,8 +12,24 @@ import PageLayout from '@/components/PageLayout';
 import SessionLogger from '@/components/SessionLogger';
 
 const Session = () => {
-  const { selectedClient, setSelectedClient } = useClient();
+  const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient } = useClient();
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const activeClients = getActiveClients();
+
+  // Initialize with global client context on mount
+  useEffect(() => {
+    if (globalSelectedClient && globalSelectedClient.isActive) {
+      setSelectedClient(globalSelectedClient);
+    }
+  }, [globalSelectedClient]);
+
+  const handleClientSelect = (clientId: string) => {
+    const client = activeClients.find(c => c.id === clientId);
+    if (client) {
+      setSelectedClient(client);
+      setGlobalSelectedClient(client); // Update global context
+    }
+  };
 
   if (!selectedClient) {
     return (
@@ -37,10 +53,7 @@ const Session = () => {
                 <Label htmlFor="client-select">Choose a client to log session for</Label>
                 <Select 
                   value=""
-                  onValueChange={(clientId) => {
-                    const client = activeClients.find(c => c.id === clientId);
-                    if (client) setSelectedClient(client);
-                  }}
+                  onValueChange={handleClientSelect}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a client..." />
