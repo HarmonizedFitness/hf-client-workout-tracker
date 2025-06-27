@@ -1,15 +1,18 @@
 
 import { useState } from 'react';
-import { mockClients } from '@/data/clientData';
-import { Client } from '@/types/exercise';
+import { useSupabaseClients } from './useSupabaseClients';
 import { toast } from '@/hooks/use-toast';
 
-export const useClientActions = (onClientSelect: (client: Client) => void) => {
+export const useClientActions = () => {
   const [newClientName, setNewClientName] = useState('');
   const [newClientEmail, setNewClientEmail] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
   const [newClientTrainingDays, setNewClientTrainingDays] = useState(3);
   const [newClientCostPerSession, setNewClientCostPerSession] = useState(75);
+  const [newClientNotes, setNewClientNotes] = useState('');
+  const [newClientGoals, setNewClientGoals] = useState('');
+
+  const { addClient } = useSupabaseClients();
 
   const handleAddClient = () => {
     if (!newClientName.trim()) {
@@ -21,29 +24,18 @@ export const useClientActions = (onClientSelect: (client: Client) => void) => {
       return;
     }
 
-    const newClient: Client = {
-      id: (mockClients.length + 1).toString(),
+    addClient({
       name: newClientName.trim(),
       email: newClientEmail.trim() || undefined,
       phone: newClientPhone.trim() || undefined,
-      dateJoined: new Date().toISOString().split('T')[0],
-      isActive: true,
-      trainingDaysPerWeek: newClientTrainingDays,
-      costPerSession: newClientCostPerSession,
-      personalRecords: [],
-      workoutHistory: []
-    };
-
-    mockClients.push(newClient);
-    onClientSelect(newClient);
+      training_days_per_week: newClientTrainingDays,
+      cost_per_session: newClientCostPerSession,
+      notes: newClientNotes.trim() || undefined,
+      goals: newClientGoals.trim() || undefined,
+    });
     
     // Reset form
     resetForm();
-
-    toast({
-      title: "Client Added!",
-      description: `${newClient.name} has been added to your client list.`,
-    });
   };
 
   const resetForm = () => {
@@ -52,6 +44,8 @@ export const useClientActions = (onClientSelect: (client: Client) => void) => {
     setNewClientPhone('');
     setNewClientTrainingDays(3);
     setNewClientCostPerSession(75);
+    setNewClientNotes('');
+    setNewClientGoals('');
   };
 
   return {
@@ -59,13 +53,17 @@ export const useClientActions = (onClientSelect: (client: Client) => void) => {
       newClientName,
       setNewClientName,
       newClientEmail,
-      setNewClientEmail,
+      setNewClientEmail,  
       newClientPhone,
       setNewClientPhone,
       newClientTrainingDays,
       setNewClientTrainingDays,
       newClientCostPerSession,
       setNewClientCostPerSession,
+      newClientNotes,
+      setNewClientNotes,
+      newClientGoals,
+      setNewClientGoals,
     },
     handleAddClient,
     resetForm,

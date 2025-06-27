@@ -1,27 +1,23 @@
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Client } from '@/types/exercise';
 import { UserCheck, Archive } from 'lucide-react';
-import { archiveClient } from '@/data/clientData';
-import { toast } from '@/hooks/use-toast';
+import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
 
 interface ClientInfoProps {
-  selectedClient: Client;
-  onClientSelect: (client: Client | null) => void;
+  selectedClient: SupabaseClient | null;
+  onClientSelect: (client: SupabaseClient | null) => void;
 }
 
 const ClientInfo = ({ selectedClient, onClientSelect }: ClientInfoProps) => {
-  const handleArchiveClient = (client: Client) => {
+  const { archiveClient } = useSupabaseClients();
+
+  const handleArchiveClient = (client: SupabaseClient) => {
     archiveClient(client.id);
     onClientSelect(null);
-    toast({
-      title: "Client Archived",
-      description: `${client.name} has been archived and can be restored anytime.`,
-    });
   };
 
-  if (!selectedClient || !selectedClient.isActive) return null;
+  if (!selectedClient || !selectedClient.is_active) return null;
 
   return (
     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -56,8 +52,8 @@ const ClientInfo = ({ selectedClient, onClientSelect }: ClientInfoProps) => {
       <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
         {selectedClient.email && <p className="text-green-600">{selectedClient.email}</p>}
         {selectedClient.phone && <p className="text-green-600">{selectedClient.phone}</p>}
-        <p className="text-green-600">{selectedClient.trainingDaysPerWeek} days/week</p>
-        <p className="text-green-600">${selectedClient.costPerSession}/session</p>
+        <p className="text-green-600">{selectedClient.training_days_per_week} days/week</p>
+        <p className="text-green-600">${selectedClient.cost_per_session}/session</p>
       </div>
     </div>
   );
