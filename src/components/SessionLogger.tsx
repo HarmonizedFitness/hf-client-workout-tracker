@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,6 +25,7 @@ interface IndividualSet {
 interface ExerciseEntry {
   exerciseId: string;
   sets: IndividualSet[];
+  collapsed: boolean;
 }
 
 const SessionLogger = ({ client }: SessionLoggerProps) => {
@@ -63,7 +63,8 @@ const SessionLogger = ({ client }: SessionLoggerProps) => {
         { setNumber: 1, reps: '', weight: '' },
         { setNumber: 2, reps: '', weight: '' },
         { setNumber: 3, reps: '', weight: '' }
-      ]
+      ],
+      collapsed: false
     };
 
     setExerciseEntries([...exerciseEntries, newEntry]);
@@ -79,6 +80,12 @@ const SessionLogger = ({ client }: SessionLoggerProps) => {
   const updateExerciseSets = (exerciseId: string, sets: IndividualSet[]) => {
     setExerciseEntries(exerciseEntries.map(entry => 
       entry.exerciseId === exerciseId ? { ...entry, sets } : entry
+    ));
+  };
+
+  const toggleExerciseCollapse = (exerciseId: string) => {
+    setExerciseEntries(exerciseEntries.map(entry => 
+      entry.exerciseId === exerciseId ? { ...entry, collapsed: !entry.collapsed } : entry
     ));
   };
 
@@ -288,6 +295,8 @@ const SessionLogger = ({ client }: SessionLoggerProps) => {
                 exerciseName={exercise?.name || 'Unknown Exercise'}
                 currentPR={currentPR}
                 onSetsChange={(sets) => updateExerciseSets(entry.exerciseId, sets)}
+                isCollapsed={entry.collapsed}
+                onToggleCollapse={() => toggleExerciseCollapse(entry.exerciseId)}
               />
             </div>
           );
