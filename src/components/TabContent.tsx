@@ -4,11 +4,11 @@ import ClientSelector from './ClientSelector';
 import ExerciseLibrary from '../pages/ExerciseLibrary';
 import EnhancedSessionLogger from './EnhancedSessionLogger';
 import PersonalBests from './PersonalBests';
-import { Client } from '@/types/exercise';
+import { SupabaseClient } from '@/hooks/useSupabaseClients';
 
 interface TabContentProps {
-  selectedClient: Client | null;
-  onClientSelect: (client: Client) => void;
+  selectedClient: SupabaseClient | null;
+  onClientSelect: (client: SupabaseClient) => void;
 }
 
 const TabContent = ({ selectedClient, onClientSelect }: TabContentProps) => {

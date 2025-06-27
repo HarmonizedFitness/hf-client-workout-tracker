@@ -14,10 +14,7 @@ export interface Trainer {
   subscription_tier: 'basic' | 'pro' | 'enterprise';
   subscription_status: string;
   client_limit: number;
-  branding_colors: {
-    primary: string;
-    secondary: string;
-  };
+  branding_colors: any; // Changed from specific type to any to handle Json type
   google_sheets_connected: boolean;
   google_calendar_connected: boolean;
   created_at: string;
