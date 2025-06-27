@@ -9,6 +9,7 @@ import { Client } from '@/types/exercise';
 import { Users, Archive, RotateCcw, ChevronDown, ChevronRight, Mail, Phone, Calendar, DollarSign } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import PageLayout from '@/components/PageLayout';
+import AddClientDialog from '@/components/AddClientDialog';
 
 const Clients = () => {
   const [showArchived, setShowArchived] = useState(false);
@@ -44,34 +45,59 @@ const Clients = () => {
     });
   };
 
+  const handleClientAdded = (client: Client) => {
+    // The client is already added to mockClients in the dialog
+    // This callback could be used for additional actions if needed
+  };
+
   return (
     <PageLayout>
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-          <Users className="h-8 w-8 text-burnt-orange" />
-          Client Management
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
-          Manage your training clients and their information
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+              <Users className="h-7 w-7 sm:h-8 sm:w-8 text-burnt-orange" />
+              Client Management
+            </h1>
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">
+              Manage your training clients and their information
+            </p>
+          </div>
+          
+          {/* Prominent Add Client Button - Always Visible */}
+          {!showArchived && (
+            <div className="shrink-0">
+              <AddClientDialog onClientAdded={handleClientAdded} />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Toggle between Active and Archived */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant={!showArchived ? "default" : "outline"}
-          onClick={() => setShowArchived(false)}
-          className={!showArchived ? "bg-burnt-orange hover:bg-burnt-orange/90" : ""}
-        >
-          Active Clients ({activeClients.length})
-        </Button>
-        <Button 
-          variant={showArchived ? "default" : "outline"}
-          onClick={() => setShowArchived(true)}
-          className={showArchived ? "bg-burnt-orange hover:bg-burnt-orange/90" : ""}
-        >
-          Archived Clients ({archivedClients.length})
-        </Button>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button 
+            variant={!showArchived ? "default" : "outline"}
+            onClick={() => setShowArchived(false)}
+            className={`flex-1 sm:flex-none h-11 ${!showArchived ? "bg-burnt-orange hover:bg-burnt-orange/90" : ""}`}
+          >
+            Active Clients ({activeClients.length})
+          </Button>
+          <Button 
+            variant={showArchived ? "default" : "outline"}
+            onClick={() => setShowArchived(true)}
+            className={`flex-1 sm:flex-none h-11 ${showArchived ? "bg-burnt-orange hover:bg-burnt-orange/90" : ""}`}
+          >
+            Archived Clients ({archivedClients.length})
+          </Button>
+        </div>
+        
+        {/* Secondary Add Button for smaller screens when viewing active clients */}
+        {!showArchived && (
+          <div className="sm:hidden w-full">
+            <AddClientDialog onClientAdded={handleClientAdded} />
+          </div>
+        )}
       </div>
 
       {/* Client Cards */}
@@ -81,14 +107,14 @@ const Clients = () => {
           
           return (
             <Card key={client.id} className="transition-all duration-200">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleClientDetails(client.id)}
-                      className="p-1 h-8 w-8"
+                      className="p-1 h-8 w-8 shrink-0 mt-1"
                     >
                       {isExpanded ? (
                         <ChevronDown className="h-4 w-4" />
@@ -96,29 +122,30 @@ const Clients = () => {
                         <ChevronRight className="h-4 w-4" />
                       )}
                     </Button>
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {client.name}
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-lg sm:text-xl">
+                        <span className="truncate">{client.name}</span>
                         {!client.isActive && (
-                          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                          <Badge variant="secondary" className="bg-orange-100 text-orange-800 self-start sm:self-center">
                             Archived
                           </Badge>
                         )}
                       </CardTitle>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-sm text-muted-foreground">
                         <span>{client.trainingDaysPerWeek} days/week</span>
                         <span>{client.personalRecords.length} PRs</span>
+                        <span>${client.costPerSession}/session</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     {client.isActive ? (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-orange-600 hover:text-orange-700">
+                          <Button variant="outline" size="sm" className="text-orange-600 hover:text-orange-700 h-9">
                             <Archive className="h-4 w-4 mr-1" />
-                            Archive
+                            <span className="hidden sm:inline">Archive</span>
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -141,10 +168,10 @@ const Clients = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleRestoreClient(client)}
-                        className="text-green-600 hover:text-green-700"
+                        className="text-green-600 hover:text-green-700 h-9"
                       >
                         <RotateCcw className="h-4 w-4 mr-1" />
-                        Restore
+                        <span className="hidden sm:inline">Restore</span>
                       </Button>
                     )}
                   </div>
@@ -153,26 +180,22 @@ const Clients = () => {
               
               {isExpanded && (
                 <CardContent className="pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     {client.email && (
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{client.email}</span>
+                        <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm truncate">{client.email}</span>
                       </div>
                     )}
                     {client.phone && (
                       <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">{client.phone}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="text-sm">Joined: {client.dateJoined}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">${client.costPerSession}/session</span>
                     </div>
                   </div>
                 </CardContent>
@@ -186,9 +209,12 @@ const Clients = () => {
         <Card>
           <CardContent className="text-center py-12">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4 text-base">
               {showArchived ? 'No archived clients found.' : 'No active clients found.'}
             </p>
+            {!showArchived && (
+              <AddClientDialog onClientAdded={handleClientAdded} />
+            )}
           </CardContent>
         </Card>
       )}
