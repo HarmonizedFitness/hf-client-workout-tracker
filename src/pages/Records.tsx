@@ -4,22 +4,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { getActiveClients } from '@/data/clientData';
-import { Client } from '@/types/exercise';
-import { Trophy, Users, RefreshCw } from 'lucide-react';
+import { Trophy, Users } from 'lucide-react';
 import { useClient } from '@/context/ClientContext';
+import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
 import PageLayout from '@/components/PageLayout';
 import PersonalBests from '@/components/PersonalBests';
 
 const Records = () => {
   const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient } = useClient();
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const activeClients = getActiveClients();
+  const [selectedClient, setSelectedClient] = useState<SupabaseClient | null>(null);
+  const { activeClients } = useSupabaseClients();
 
   // Initialize with global client context on mount
   useEffect(() => {
-    if (globalSelectedClient && globalSelectedClient.isActive) {
+    if (globalSelectedClient && globalSelectedClient.is_active) {
       setSelectedClient(globalSelectedClient);
     }
   }, [globalSelectedClient]);
@@ -70,7 +68,7 @@ const Records = () => {
                             )}
                           </div>
                           <Badge variant="secondary" className="ml-2">
-                            {client.trainingDaysPerWeek}x/week
+                            {client.training_days_per_week}x/week
                           </Badge>
                         </div>
                       </SelectItem>
@@ -102,7 +100,7 @@ const Records = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">Current Client: {selectedClient.name}</span>
                 <Badge variant="secondary">
-                  {selectedClient.trainingDaysPerWeek} days/week
+                  {selectedClient.training_days_per_week} days/week
                 </Badge>
               </div>
               <div className="flex items-center gap-2">

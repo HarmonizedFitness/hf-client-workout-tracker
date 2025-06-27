@@ -1,16 +1,16 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { Client } from '@/types/exercise';
+import { SupabaseClient } from '@/hooks/useSupabaseClients';
 
 interface ClientContextType {
-  selectedClient: Client | null;
-  setSelectedClient: (client: Client | null) => void;
+  selectedClient: SupabaseClient | null;
+  setSelectedClient: (client: SupabaseClient | null) => void;
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
 export const ClientProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<SupabaseClient | null>(null);
 
   return (
     <ClientContext.Provider value={{ selectedClient, setSelectedClient }}>
