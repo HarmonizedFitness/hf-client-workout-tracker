@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Client } from '@/types/exercise';
 import { Trophy, BookOpen, Plus, Users } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import TabContent from '@/components/TabContent';
@@ -29,11 +28,11 @@ const Index = () => {
               <BookOpen className="h-4 w-4" />
               Exercise Library
             </TabsTrigger>
-            <TabsTrigger value="session" className="flex items-center gap-2 text-sm" disabled={!selectedClient?.isActive}>
+            <TabsTrigger value="session" className="flex items-center gap-2 text-sm" disabled={!selectedClient?.is_active}>
               <Plus className="h-4 w-4" />
               Log Session
             </TabsTrigger>
-            <TabsTrigger value="records" className="flex items-center gap-2 text-sm" disabled={!selectedClient?.isActive}>
+            <TabsTrigger value="records" className="flex items-center gap-2 text-sm" disabled={!selectedClient?.is_active}>
               <Trophy className="h-4 w-4" />
               Personal Records
             </TabsTrigger>

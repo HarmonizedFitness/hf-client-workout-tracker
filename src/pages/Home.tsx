@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SupabaseClient } from '@/hooks/useSupabaseClients';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
-import HomeClientSelector from '@/components/HomeClientSelector';
 import { Users, Calendar, Trophy, Target, Plus, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageLayout from '@/components/PageLayout';
@@ -106,10 +105,37 @@ const Home = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <HomeClientSelector 
-              selectedClient={localSelectedClient} 
-              onClientSelect={handleClientSelect}
-            />
+            {/* Updated client selector to use SupabaseClient directly */}
+            <div className="space-y-4">
+              {localSelectedClient && localSelectedClient.is_active && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-800">
+                    <Users className="h-4 w-4" />
+                    <span className="font-medium">Selected: {localSelectedClient.name}</span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-green-600">
+                    <p>{localSelectedClient.training_days_per_week} days/week</p>
+                    <p>${localSelectedClient.cost_per_session}/session</p>
+                  </div>
+                </div>
+              )}
+
+              <select 
+                value={localSelectedClient?.id || ''} 
+                onChange={(e) => {
+                  const client = activeClients.find(c => c.id === e.target.value);
+                  if (client) handleClientSelect(client);
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="">Choose a client...</option>
+                {activeClients.map(client => (
+                  <option key={client.id} value={client.id}>
+                    {client.name} ({client.training_days_per_week}x/week)
+                  </option>
+                ))}
+              </select>
+            </div>
             
             {localSelectedClient && localSelectedClient.is_active && (
               <div className="mt-4 flex gap-2">
