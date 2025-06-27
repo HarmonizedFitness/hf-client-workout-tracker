@@ -92,17 +92,31 @@ const Session = () => {
           <h1 className="text-3xl font-bold mb-2">Log Workout Session</h1>
         </div>
 
-        {/* Selected Client Display */}
+        {/* Client Switcher */}
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-green-800 dark:text-green-400">
                 <UserCheck className="h-4 w-4" />
                 <span className="font-medium">Logging session for: {selectedClient.name}</span>
+                <Badge variant="secondary">
+                  {selectedClient.trainingDaysPerWeek} days/week
+                </Badge>
               </div>
-              <Badge variant="secondary">
-                {selectedClient.trainingDaysPerWeek} days/week
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Select value={selectedClient.id} onValueChange={handleClientSelect}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeClients.map(client => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -4,9 +4,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { getActiveClients } from '@/data/clientData';
 import { Client } from '@/types/exercise';
-import { Trophy, Users } from 'lucide-react';
+import { Trophy, Users, RefreshCw } from 'lucide-react';
 import { useClient } from '@/context/ClientContext';
 import PageLayout from '@/components/PageLayout';
 import PersonalBests from '@/components/PersonalBests';
@@ -92,6 +93,35 @@ const Records = () => {
           <h1 className="text-3xl font-bold mb-2">Personal Records</h1>
           <p className="text-muted-foreground">Viewing records for {selectedClient.name}</p>
         </div>
+
+        {/* Client Switcher */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">Current Client: {selectedClient.name}</span>
+                <Badge variant="secondary">
+                  {selectedClient.trainingDaysPerWeek} days/week
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select value={selectedClient.id} onValueChange={handleClientSelect}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeClients.map(client => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <PersonalBests client={selectedClient} />
       </div>
