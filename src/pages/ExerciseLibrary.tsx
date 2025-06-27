@@ -22,8 +22,13 @@ const ExerciseLibrary = () => {
   const [forceTypeFilter, setForceTypeFilter] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
-  // New exercise form state
-  const [newExercise, setNewExercise] = useState({
+  // New exercise form state with proper typing
+  const [newExercise, setNewExercise] = useState<{
+    name: string;
+    muscleGroup: Exercise['muscleGroup'] | '';
+    forceType: Exercise['forceType'] | '';
+    notes: string;
+  }>({
     name: '',
     muscleGroup: '',
     forceType: '',
@@ -54,8 +59,8 @@ const ExerciseLibrary = () => {
     const exercise: Exercise = {
       id: (Date.now()).toString(),
       name: newExercise.name.trim(),
-      muscleGroup: newExercise.muscleGroup,
-      forceType: newExercise.forceType,
+      muscleGroup: newExercise.muscleGroup as Exercise['muscleGroup'],
+      forceType: newExercise.forceType as Exercise['forceType'],
       notes: newExercise.notes.trim() || undefined
     };
 
@@ -105,7 +110,7 @@ const ExerciseLibrary = () => {
                   <Label htmlFor="muscle-group">Muscle Group *</Label>
                   <Select 
                     value={newExercise.muscleGroup} 
-                    onValueChange={(value) => setNewExercise({...newExercise, muscleGroup: value})}
+                    onValueChange={(value) => setNewExercise({...newExercise, muscleGroup: value as Exercise['muscleGroup']})}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select muscle group..." />
@@ -122,7 +127,7 @@ const ExerciseLibrary = () => {
                   <Label htmlFor="force-type">Force Type *</Label>
                   <Select 
                     value={newExercise.forceType} 
-                    onValueChange={(value) => setNewExercise({...newExercise, forceType: value})}
+                    onValueChange={(value) => setNewExercise({...newExercise, forceType: value as Exercise['forceType']})}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select force type..." />
