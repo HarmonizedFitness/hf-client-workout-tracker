@@ -28,7 +28,7 @@ const TabContent = ({ selectedClient, onClientSelect }: TabContentProps) => {
 
       <TabsContent value="records">
         {selectedClient ? (
-          <PersonalBests selectedClient={selectedClient} />
+          <PersonalBests client={selectedClient} />
         ) : (
           <div className="text-center text-muted-foreground py-8">
             Please select a client first to view their personal records.
