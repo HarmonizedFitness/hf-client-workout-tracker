@@ -18,10 +18,11 @@ const ClientSelector = ({ selectedClient, onClientSelect }: ClientSelectorProps)
   const [showAddForm, setShowAddForm] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   
-  const { formState, handleAddClient, resetForm } = useClientActions();
+  const { formState, handleAddClient, resetForm, isAddingClient } = useClientActions();
   const { activeClients, archivedClients, isLoading } = useSupabaseClients();
 
   const handleAddClientSubmit = () => {
+    console.log('ClientSelector: handleAddClientSubmit called');
     handleAddClient();
     setShowAddForm(false);
   };
@@ -70,6 +71,7 @@ const ClientSelector = ({ selectedClient, onClientSelect }: ClientSelectorProps)
               variant="outline" 
               onClick={() => setShowAddForm(!showAddForm)}
               className="mt-6"
+              disabled={isAddingClient}
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Client
@@ -82,6 +84,7 @@ const ClientSelector = ({ selectedClient, onClientSelect }: ClientSelectorProps)
             formState={formState}
             onSubmit={handleAddClientSubmit}
             onCancel={handleCancelAdd}
+            isLoading={isAddingClient}
           />
         )}
       </CardContent>

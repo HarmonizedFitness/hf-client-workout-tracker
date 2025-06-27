@@ -25,10 +25,17 @@ export const useSupabaseClients = () => {
   const { trainer } = useTrainer();
   const queryClient = useQueryClient();
 
-  const { data: clients = [], isLoading } = useQuery({
+  console.log('useSupabaseClients: trainer data:', trainer);
+
+  const { data: clients = [], isLoading, error } = useQuery({
     queryKey: ['clients', trainer?.id],
     queryFn: async () => {
-      if (!trainer) return [];
+      console.log('Fetching clients for trainer:', trainer?.id);
+      
+      if (!trainer) {
+        console.log('No trainer found, returning empty array');
+        return [];
+      }
       
       const { data, error } = await supabase
         .from('clients')
@@ -36,7 +43,14 @@ export const useSupabaseClients = () => {
         .eq('trainer_id', trainer.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Supabase clients query result:', { data, error });
+
+      if (error) {
+        console.error('Error fetching clients:', error);
+        throw error;
+      }
+      
+      console.log('Successfully fetched clients:', data);
       return data as SupabaseClient[];
     },
     enabled: !!trainer,
@@ -52,21 +66,39 @@ export const useSupabaseClients = () => {
       notes?: string;
       goals?: string;
     }) => {
-      if (!trainer) throw new Error('No trainer found');
+      console.log('addClientMutation called with data:', newClient);
+      console.log('Current trainer:', trainer);
+      
+      if (!trainer) {
+        console.error('No trainer found for client creation');
+        throw new Error('No trainer found - please make sure you are logged in');
+      }
+      
+      const clientData = {
+        ...newClient,
+        trainer_id: trainer.id,
+      };
+      
+      console.log('Inserting client data to Supabase:', clientData);
       
       const { data, error } = await supabase
         .from('clients')
-        .insert([{
-          ...newClient,
-          trainer_id: trainer.id,
-        }])
+        .insert([clientData])
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('Supabase insert result:', { data, error });
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
+      
+      console.log('Successfully created client:', data);
       return data;
     },
     onSuccess: (newClient) => {
+      console.log('Client creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         title: "Client Added!",
@@ -74,9 +106,10 @@ export const useSupabaseClients = () => {
       });
     },
     onError: (error: any) => {
+      console.error('Client creation error:', error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error Adding Client",
+        description: error.message || 'Failed to add client. Please try again.',
         variant: "destructive",
       });
     },
@@ -84,6 +117,8 @@ export const useSupabaseClients = () => {
 
   const updateClientMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<SupabaseClient> }) => {
+      console.log('Updating client:', id, updates);
+      
       const { data, error } = await supabase
         .from('clients')
         .update(updates)
@@ -91,16 +126,29 @@ export const useSupabaseClients = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Client update error:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
+    onError: (error: any) => {
+      console.error('Client update error:', error);
+      toast({
+        title: "Error Updating Client",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const archiveClientMutation = useMutation({
     mutationFn: async (clientId: string) => {
+      console.log('Archiving client:', clientId);
+      
       const { data, error } = await supabase
         .from('clients')
         .update({ 
@@ -111,7 +159,10 @@ export const useSupabaseClients = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Client archive error:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: (client) => {
@@ -121,16 +172,33 @@ export const useSupabaseClients = () => {
         description: `${client.name} has been archived and can be restored anytime.`,
       });
     },
+    onError: (error: any) => {
+      console.error('Client archive error:', error);
+      toast({
+        title: "Error Archiving Client",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const activeClients = clients.filter(client => client.is_active);
   const archivedClients = clients.filter(client => !client.is_active);
+
+  console.log('useSupabaseClients returning:', {
+    totalClients: clients.length,
+    activeClients: activeClients.length,
+    archivedClients: archivedClients.length,
+    isLoading,
+    error
+  });
 
   return {
     clients,
     activeClients,
     archivedClients,
     isLoading,
+    error,
     addClient: addClientMutation.mutate,
     isAddingClient: addClientMutation.isPending,
     updateClient: updateClientMutation.mutate,

@@ -12,9 +12,19 @@ export const useClientActions = () => {
   const [newClientNotes, setNewClientNotes] = useState('');
   const [newClientGoals, setNewClientGoals] = useState('');
 
-  const { addClient } = useSupabaseClients();
+  const { addClient, isAddingClient } = useSupabaseClients();
 
   const handleAddClient = () => {
+    console.log('handleAddClient called with:', {
+      name: newClientName,
+      email: newClientEmail,
+      phone: newClientPhone,
+      training_days_per_week: newClientTrainingDays,
+      cost_per_session: newClientCostPerSession,
+      notes: newClientNotes,
+      goals: newClientGoals,
+    });
+
     if (!newClientName.trim()) {
       toast({
         title: "Name Required",
@@ -24,7 +34,7 @@ export const useClientActions = () => {
       return;
     }
 
-    addClient({
+    const clientData = {
       name: newClientName.trim(),
       email: newClientEmail.trim() || undefined,
       phone: newClientPhone.trim() || undefined,
@@ -32,13 +42,17 @@ export const useClientActions = () => {
       cost_per_session: newClientCostPerSession,
       notes: newClientNotes.trim() || undefined,
       goals: newClientGoals.trim() || undefined,
-    });
+    };
+
+    console.log('Calling addClient with processed data:', clientData);
+    addClient(clientData);
     
     // Reset form
     resetForm();
   };
 
   const resetForm = () => {
+    console.log('Resetting client form');
     setNewClientName('');
     setNewClientEmail('');
     setNewClientPhone('');
@@ -67,5 +81,6 @@ export const useClientActions = () => {
     },
     handleAddClient,
     resetForm,
+    isAddingClient,
   };
 };
