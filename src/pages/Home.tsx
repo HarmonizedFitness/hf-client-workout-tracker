@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Client } from '@/types/exercise';
-import { getActiveClients } from '@/data/clientData';
+import { SupabaseClient } from '@/hooks/useSupabaseClients';
+import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import HomeClientSelector from '@/components/HomeClientSelector';
 import { Users, Calendar, Trophy, Target, Plus, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -12,23 +12,21 @@ import PageLayout from '@/components/PageLayout';
 import { useClient } from '@/context/ClientContext';
 
 const Home = () => {
-  const [localSelectedClient, setLocalSelectedClient] = useState<Client | null>(null);
+  const [localSelectedClient, setLocalSelectedClient] = useState<SupabaseClient | null>(null);
   const { setSelectedClient } = useClient();
-  const activeClients = getActiveClients();
+  const { activeClients } = useSupabaseClients();
 
-  const handleClientSelect = (client: Client) => {
+  const handleClientSelect = (client: SupabaseClient) => {
     setLocalSelectedClient(client);
     setSelectedClient(client); // Update global context
   };
 
   // Calculate non-financial statistics
   const totalActiveClients = activeClients.length;
-  const totalSessionsThisMonth = activeClients.reduce((sum, client) => 
-    sum + (client.workoutHistory?.length || 0), 0
-  );
+  const totalSessionsThisMonth = 0; // This would need to be calculated from workout sessions
   const totalLivesImpacted = activeClients.length;
   const weeklySessionsPlanned = activeClients.reduce((sum, client) => 
-    sum + client.trainingDaysPerWeek, 0
+    sum + client.training_days_per_week, 0
   );
 
   return (
@@ -113,7 +111,7 @@ const Home = () => {
               onClientSelect={handleClientSelect}
             />
             
-            {localSelectedClient && localSelectedClient.isActive && (
+            {localSelectedClient && localSelectedClient.is_active && (
               <div className="mt-4 flex gap-2">
                 <Link to="/session">
                   <Button className="flex items-center gap-2">
@@ -175,15 +173,15 @@ const Home = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Training Days per Week</span>
-                <Badge variant="secondary">{localSelectedClient.trainingDaysPerWeek} days</Badge>
+                <Badge variant="secondary">{localSelectedClient.training_days_per_week} days</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">Personal Records</span>
-                <Badge variant="secondary">{localSelectedClient.personalRecords.length} PRs</Badge>
+                <span className="text-sm">Cost per Session</span>
+                <Badge variant="secondary">${localSelectedClient.cost_per_session}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Date Joined</span>
-                <span className="text-sm text-muted-foreground">{localSelectedClient.dateJoined}</span>
+                <span className="text-sm text-muted-foreground">{localSelectedClient.date_joined}</span>
               </div>
             </div>
           </CardContent>

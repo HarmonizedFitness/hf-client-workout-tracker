@@ -3,15 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { getActiveClients } from '@/data/clientData';
-import { Client } from '@/types/exercise';
 import { UserCheck, Users } from 'lucide-react';
 import { useClient } from '@/context/ClientContext';
+import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
 import SessionLogger from './SessionLogger';
+import { adaptSupabaseClientToLegacyClient } from './ClientAdapter';
 
 const EnhancedSessionLogger = () => {
   const { selectedClient, setSelectedClient } = useClient();
-  const activeClients = getActiveClients();
+  const { activeClients } = useSupabaseClients();
 
   if (!selectedClient) {
     return (
@@ -46,7 +46,7 @@ const EnhancedSessionLogger = () => {
                         )}
                       </div>
                       <Badge variant="secondary" className="ml-2">
-                        {client.trainingDaysPerWeek}x/week
+                        {client.training_days_per_week}x/week
                       </Badge>
                     </div>
                   </SelectItem>
@@ -70,14 +70,14 @@ const EnhancedSessionLogger = () => {
               <span className="font-medium">Logging session for: {selectedClient.name}</span>
             </div>
             <Badge variant="secondary">
-              {selectedClient.trainingDaysPerWeek} days/week
+              {selectedClient.training_days_per_week} days/week
             </Badge>
           </div>
         </CardContent>
       </Card>
 
       {/* Session Logger */}
-      <SessionLogger client={selectedClient} />
+      <SessionLogger client={adaptSupabaseClientToLegacyClient(selectedClient)} />
     </div>
   );
 };

@@ -4,21 +4,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { getActiveClients } from '@/data/clientData';
-import { Client } from '@/types/exercise';
+import { SupabaseClient, useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { UserCheck, Users, Plus } from 'lucide-react';
 import { useClient } from '@/context/ClientContext';
 import PageLayout from '@/components/PageLayout';
 import SessionLogger from '@/components/SessionLogger';
+import { adaptSupabaseClientToLegacyClient } from '@/components/ClientAdapter';
 
 const Session = () => {
   const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient } = useClient();
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const activeClients = getActiveClients();
+  const [selectedClient, setSelectedClient] = useState<SupabaseClient | null>(null);
+  const { activeClients } = useSupabaseClients();
 
   // Initialize with global client context on mount
   useEffect(() => {
-    if (globalSelectedClient && globalSelectedClient.isActive) {
+    if (globalSelectedClient && globalSelectedClient.is_active) {
       setSelectedClient(globalSelectedClient);
     }
   }, [globalSelectedClient]);
@@ -69,7 +69,7 @@ const Session = () => {
                             )}
                           </div>
                           <Badge variant="secondary" className="ml-2">
-                            {client.trainingDaysPerWeek}x/week
+                            {client.training_days_per_week}x/week
                           </Badge>
                         </div>
                       </SelectItem>
@@ -100,7 +100,7 @@ const Session = () => {
                 <UserCheck className="h-4 w-4" />
                 <span className="font-medium">Logging session for: {selectedClient.name}</span>
                 <Badge variant="secondary">
-                  {selectedClient.trainingDaysPerWeek} days/week
+                  {selectedClient.training_days_per_week} days/week
                 </Badge>
               </div>
               <div className="flex items-center gap-2">
@@ -122,7 +122,7 @@ const Session = () => {
         </Card>
 
         {/* Session Logger */}
-        <SessionLogger client={selectedClient} />
+        <SessionLogger client={adaptSupabaseClientToLegacyClient(selectedClient)} />
       </div>
     </PageLayout>
   );
