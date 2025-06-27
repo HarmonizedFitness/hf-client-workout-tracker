@@ -5,15 +5,18 @@ import { Client } from '@/types/exercise';
 import { Trophy, BookOpen, Plus, Users } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import TabContent from '@/components/TabContent';
+import MainNavigation from '@/components/MainNavigation';
+import { useClient } from '@/context/ClientContext';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('clients');
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const { selectedClient, setSelectedClient } = useClient();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-700">
       <div className="container mx-auto p-4 max-w-7xl">
         <AppHeader />
+        <MainNavigation />
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
