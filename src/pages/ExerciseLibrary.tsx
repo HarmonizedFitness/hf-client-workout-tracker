@@ -341,7 +341,7 @@ const ExerciseLibrary = () => {
             <Checkbox
               id="favorites-filter"
               checked={showFavoritesOnly}
-              onCheckedChange={setShowFavoritesOnly}
+              onCheckedChange={(checked) => setShowFavoritesOnly(checked === true)}
               className="data-[state=checked]:bg-burnt-orange data-[state=checked]:border-burnt-orange"
             />
             <Label htmlFor="favorites-filter" className="text-sm font-medium flex items-center gap-1">
