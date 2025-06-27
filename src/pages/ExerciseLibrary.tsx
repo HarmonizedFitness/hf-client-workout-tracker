@@ -1,19 +1,13 @@
+
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { initialExercises } from '@/data/exerciseData';
 import { Exercise } from '@/types/exercise';
-import { Search, Filter, BookOpen, Plus, Star, Heart, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import PageLayout from '@/components/PageLayout';
-import ExerciseCard from '@/components/ExerciseCard';
+import ExerciseLibraryHeader from '@/components/ExerciseLibraryHeader';
+import BulkActionsBar from '@/components/BulkActionsBar';
+import ExerciseFilters from '@/components/ExerciseFilters';
+import ExerciseGrid from '@/components/ExerciseGrid';
 import EditExerciseDialog from '@/components/EditExerciseDialog';
 import DeleteExerciseDialog from '@/components/DeleteExerciseDialog';
 
@@ -150,248 +144,59 @@ const ExerciseLibrary = () => {
     setDeletingExercises(exercisesToDelete);
   };
 
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setMuscleGroupFilter('all');
+    setForceTypeFilter('all');
+    setShowFavoritesOnly(false);
+  };
+
   return (
     <PageLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="text-center flex-1">
-            <BookOpen className="h-12 w-12 text-burnt-orange mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-2">Exercise Library</h1>
-            <p className="text-muted-foreground">
-              Browse and manage your exercise database
-              {favoriteCount > 0 && (
-                <span className="ml-2">
-                  <Badge variant="secondary" className="text-xs">
-                    <Heart className="h-3 w-3 mr-1 fill-current text-red-500" />
-                    {favoriteCount} favorite{favoriteCount !== 1 ? 's' : ''}
-                  </Badge>
-                </span>
-              )}
-            </p>
-          </div>
-          
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-burnt-orange hover:bg-burnt-orange/90">
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Exercise
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Exercise</DialogTitle>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="exercise-name">Exercise Name *</Label>
-                  <Input
-                    id="exercise-name"
-                    value={newExercise.name}
-                    onChange={(e) => setNewExercise({...newExercise, name: e.target.value})}
-                    placeholder="Enter exercise name..."
-                  />
-                </div>
+        <ExerciseLibraryHeader
+          favoriteCount={favoriteCount}
+          muscleGroups={muscleGroups}
+          forceTypes={forceTypes}
+          isAddDialogOpen={isAddDialogOpen}
+          setIsAddDialogOpen={setIsAddDialogOpen}
+          newExercise={newExercise}
+          setNewExercise={setNewExercise}
+          onAddExercise={handleAddExercise}
+        />
 
-                <div>
-                  <Label htmlFor="muscle-group">Muscle Group *</Label>
-                  <Select 
-                    value={newExercise.muscleGroup} 
-                    onValueChange={(value) => setNewExercise({...newExercise, muscleGroup: value as Exercise['muscleGroup']})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select muscle group..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {muscleGroups.map(group => (
-                        <SelectItem key={group} value={group}>{group}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <BulkActionsBar
+          selectedCount={selectedExercises.size}
+          filteredCount={filteredExercises.length}
+          onSelectAll={handleSelectAll}
+          onBulkEdit={handleBulkEdit}
+          onBulkDelete={handleBulkDelete}
+        />
 
-                <div>
-                  <Label htmlFor="force-type">Force Type *</Label>
-                  <Select 
-                    value={newExercise.forceType} 
-                    onValueChange={(value) => setNewExercise({...newExercise, forceType: value as Exercise['forceType']})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select force type..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {forceTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <ExerciseFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          muscleGroupFilter={muscleGroupFilter}
+          setMuscleGroupFilter={setMuscleGroupFilter}
+          forceTypeFilter={forceTypeFilter}
+          setForceTypeFilter={setForceTypeFilter}
+          showFavoritesOnly={showFavoritesOnly}
+          setShowFavoritesOnly={setShowFavoritesOnly}
+          muscleGroups={muscleGroups}
+          forceTypes={forceTypes}
+        />
 
-                <div>
-                  <Label htmlFor="exercise-notes">Notes (Optional)</Label>
-                  <Textarea
-                    id="exercise-notes"
-                    value={newExercise.notes}
-                    onChange={(e) => setNewExercise({...newExercise, notes: e.target.value})}
-                    placeholder="Add any notes about this exercise..."
-                    rows={3}
-                  />
-                </div>
+        <ExerciseGrid
+          exercises={filteredExercises}
+          selectedExercises={selectedExercises}
+          onSelectExercise={handleSelectExercise}
+          onToggleFavorite={handleToggleFavorite}
+          onEditExercise={setEditingExercise}
+          onDeleteExercise={(ex) => setDeletingExercises([ex])}
+          onClearFilters={handleClearFilters}
+          totalCount={exercises.length}
+        />
 
-                <div className="flex gap-2 pt-4">
-                  <Button onClick={handleAddExercise} className="flex-1">
-                    Add Exercise
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsAddDialogOpen(false)}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Bulk Actions Bar */}
-        {selectedExercises.size > 0 && (
-          <Card className="border-burnt-orange bg-burnt-orange/5">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">
-                    {selectedExercises.size} selected
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleSelectAll}
-                  >
-                    {selectedExercises.size === filteredExercises.length ? 'Deselect All' : 'Select All'}
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  {selectedExercises.size === 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleBulkEdit}
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                  )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleBulkDelete}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete Selected
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Search and Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search exercises..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <Select value={muscleGroupFilter} onValueChange={setMuscleGroupFilter}>
-            <SelectTrigger>
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <SelectValue placeholder="Filter by muscle group" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Muscle Groups</SelectItem>
-              {muscleGroups.map(group => (
-                <SelectItem key={group} value={group}>{group}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={forceTypeFilter} onValueChange={setForceTypeFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by force type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Force Types</SelectItem>
-              {forceTypes.map(type => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="favorites-filter"
-              checked={showFavoritesOnly}
-              onCheckedChange={(checked) => setShowFavoritesOnly(checked === true)}
-              className="data-[state=checked]:bg-burnt-orange data-[state=checked]:border-burnt-orange"
-            />
-            <Label htmlFor="favorites-filter" className="text-sm font-medium flex items-center gap-1">
-              <Star className="h-4 w-4 text-yellow-400" />
-              Favorites Only
-            </Label>
-          </div>
-        </div>
-
-        {/* Exercise Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredExercises.map(exercise => (
-            <ExerciseCard
-              key={exercise.id}
-              exercise={exercise}
-              isSelected={selectedExercises.has(exercise.id)}
-              onSelect={handleSelectExercise}
-              onToggleFavorite={handleToggleFavorite}
-              onEdit={setEditingExercise}
-              onDelete={(ex) => setDeletingExercises([ex])}
-            />
-          ))}
-        </div>
-
-        {filteredExercises.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No exercises found matching your criteria.</p>
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                setSearchTerm('');
-                setMuscleGroupFilter('all');
-                setForceTypeFilter('all');
-                setShowFavoritesOnly(false);
-              }}
-              className="mt-2"
-            >
-              Clear all filters
-            </Button>
-          </div>
-        )}
-
-        <div className="text-center text-sm text-muted-foreground pt-4 border-t">
-          Showing {filteredExercises.length} of {exercises.length} exercises
-          {selectedExercises.size > 0 && (
-            <span className="ml-2">({selectedExercises.size} selected)</span>
-          )}
-        </div>
-
-        {/* Edit Exercise Dialog */}
         <EditExerciseDialog
           exercise={editingExercise}
           isOpen={!!editingExercise}
@@ -401,7 +206,6 @@ const ExerciseLibrary = () => {
           forceTypes={forceTypes}
         />
 
-        {/* Delete Exercise Dialog */}
         <DeleteExerciseDialog
           exercises={deletingExercises}
           isOpen={deletingExercises.length > 0}
