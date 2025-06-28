@@ -50,7 +50,13 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
     muscleGroup: string;
     notes?: string;
   }) => {
-    addExercise(exercise);
+    // Convert camelCase to snake_case for the API
+    addExercise({
+      name: exercise.name,
+      force_type: exercise.forceType,
+      muscle_group: exercise.muscleGroup,
+      notes: exercise.notes,
+    });
     setShowAddDialog(false);
     
     // After successful creation, the exercise will be available in allExercises
