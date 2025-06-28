@@ -1,6 +1,6 @@
 
 import { PersonalRecord, PersonalRecordWithExercise, PRCheckData, PRSaveData } from '@/types/personalRecord';
-import { initialExercises } from '@/data/exerciseData';
+import { initialExercises } from '@/data/exercises';
 import { SupabaseExercise } from '@/hooks/useExercises';
 
 export const mapPersonalRecordsWithExercises = (
