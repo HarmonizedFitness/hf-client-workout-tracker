@@ -5,16 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
-import { Users, Archive, RotateCcw, ChevronDown, ChevronRight, Mail, Phone, Calendar, Plus } from 'lucide-react';
+import { Users, Archive, RotateCcw, ChevronDown, ChevronRight, Mail, Phone, Calendar, Plus, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import PageLayout from '@/components/PageLayout';
 import AddClientForm from '@/components/AddClientForm';
+import EditClientDialog from '@/components/EditClientDialog';
 import { useClientActions } from '@/hooks/useClientActions';
 
 const Clients = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingClient, setEditingClient] = useState<SupabaseClient | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { activeClients, archivedClients, isLoading, archiveClient } = useSupabaseClients();
   const { formState, handleAddClient, resetForm, isAddingClient } = useClientActions();
@@ -41,6 +44,12 @@ const Clients = () => {
       title: "Feature Coming Soon",
       description: "Client restore functionality will be available soon.",
     });
+  };
+
+  const handleEditClient = (client: SupabaseClient) => {
+    console.log('Edit client clicked:', client);
+    setEditingClient(client);
+    setShowEditDialog(true);
   };
 
   const handleAddClientSubmit = () => {
@@ -120,6 +129,13 @@ const Clients = () => {
         </div>
       )}
 
+      {/* Edit Client Dialog */}
+      <EditClientDialog
+        client={editingClient}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+      />
+
       {/* Toggle between Active and Archived */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
         <div className="flex gap-2 w-full sm:w-auto">
@@ -179,6 +195,18 @@ const Clients = () => {
                   </div>
                   
                   <div className="flex items-center gap-2 shrink-0">
+                    {client.is_active && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditClient(client)}
+                        className="text-blue-600 hover:text-blue-700 h-9"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
+                    )}
+                    
                     {client.is_active ? (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
