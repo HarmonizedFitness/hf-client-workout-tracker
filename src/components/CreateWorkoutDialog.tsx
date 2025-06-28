@@ -109,20 +109,6 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
 
     const exerciseIds = selectedExercises.map(ex => ex.id);
     console.log('3. Exercise IDs to be saved:', exerciseIds);
-
-    // Validate that all exercise IDs are properly formatted
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const invalidIds = exerciseIds.filter(id => !uuidRegex.test(id));
-    
-    if (invalidIds.length > 0) {
-      console.error('CRITICAL: Invalid UUID format detected:', invalidIds);
-      toast({
-        title: "Error",
-        description: "Invalid exercise data detected. Please refresh the page and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
     
     try {
       console.log('4. Attempting to create workout template...');

@@ -66,18 +66,6 @@ export const useWorkoutTemplates = () => {
         isArray: Array.isArray(template.exercise_ids),
         length: template.exercise_ids.length
       });
-
-      // Validate exercise IDs format
-      const invalidIds = template.exercise_ids.filter(id => {
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        return !uuidRegex.test(id);
-      });
-
-      if (invalidIds.length > 0) {
-        console.error('CRITICAL: Invalid UUID format for exercise IDs:', invalidIds);
-        console.error('All exercise IDs must be valid UUIDs');
-        throw new Error(`Invalid exercise ID format: ${invalidIds.join(', ')}`);
-      }
       
       const templateData = {
         ...template,
