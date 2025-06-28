@@ -3,7 +3,7 @@ import { useTrainer } from './useTrainer';
 import { useClientsQuery } from './useClientsQuery';
 import { useClientMutations } from './useClientMutations';
 
-export { SupabaseClient } from '@/types/client';
+export type { SupabaseClient } from '@/types/client';
 
 export const useSupabaseClients = () => {
   const { trainer } = useTrainer();
