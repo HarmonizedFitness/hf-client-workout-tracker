@@ -61,6 +61,7 @@ export const usePersonalRecords = (clientId?: string) => {
       return (data || []).map(record => ({
         ...record,
         pr_type: record.pr_type || 'single_weight', // Default to single_weight if missing
+        total_volume: record.total_volume || null,
         exercise_name: record.exercises?.name || 'Unknown Exercise'
       })) as PersonalRecordWithExercise[];
     },

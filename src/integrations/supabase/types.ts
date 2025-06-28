@@ -186,9 +186,11 @@ export type Database = {
           date: string
           exercise_id: string
           id: string
+          pr_type: string | null
           reps: number
           session_id: string | null
           set_number: number
+          total_volume: number | null
           weight: number
         }
         Insert: {
@@ -197,9 +199,11 @@ export type Database = {
           date: string
           exercise_id: string
           id?: string
+          pr_type?: string | null
           reps: number
           session_id?: string | null
           set_number: number
+          total_volume?: number | null
           weight: number
         }
         Update: {
@@ -208,9 +212,11 @@ export type Database = {
           date?: string
           exercise_id?: string
           id?: string
+          pr_type?: string | null
           reps?: number
           session_id?: string | null
           set_number?: number
+          total_volume?: number | null
           weight?: number
         }
         Relationships: [
