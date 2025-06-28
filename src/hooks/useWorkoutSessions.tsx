@@ -18,7 +18,7 @@ export interface WorkoutSession {
 export interface WorkoutSet {
   id: string;
   session_id: string;
-  exercise_id: string;
+  exercise_id: string; // Now TEXT instead of UUID
   set_number: number;
   reps: number;
   weight: number;
@@ -65,7 +65,7 @@ export const useWorkoutSessions = (clientId?: string) => {
       clientId: string;
       date: string;
       sets: Array<{
-        exerciseId: string;
+        exerciseId: string; // This will now be a string like "1", "2", etc.
         setNumber: number;
         reps: number;
         weight: number;
@@ -101,7 +101,7 @@ export const useWorkoutSessions = (clientId?: string) => {
       // Create all workout sets
       const setsToInsert = sessionData.sets.map(set => ({
         session_id: session.id,
-        exercise_id: set.exerciseId,
+        exercise_id: set.exerciseId, // Now correctly handles string exercise IDs
         set_number: set.setNumber,
         reps: set.reps,
         weight: set.weight,
@@ -145,7 +145,7 @@ export const useWorkoutSessions = (clientId?: string) => {
   return {
     sessions,
     isLoading,
-    saveSession: saveSessionMutation.mutateAsync, // Return mutateAsync to handle promises
+    saveSession: saveSessionMutation.mutateAsync,
     isSavingSession: saveSessionMutation.isPending,
   };
 };

@@ -228,13 +228,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "personal_records_exercise_id_fkey"
-            columns: ["exercise_id"]
-            isOneToOne: false
-            referencedRelation: "exercises"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "personal_records_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -436,13 +429,6 @@ export type Database = {
           weight?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "workout_sets_exercise_id_fkey"
-            columns: ["exercise_id"]
-            isOneToOne: false
-            referencedRelation: "exercises"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "workout_sets_session_id_fkey"
             columns: ["session_id"]

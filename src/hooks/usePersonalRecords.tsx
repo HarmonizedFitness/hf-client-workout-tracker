@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 export interface PersonalRecord {
   id: string;
   client_id: string;
-  exercise_id: string;
+  exercise_id: string; // Now TEXT instead of UUID
   weight: number;
   reps: number;
   set_number: number;
@@ -60,7 +60,7 @@ export const usePersonalRecords = (clientId?: string) => {
       
       return (data || []).map(record => ({
         ...record,
-        pr_type: record.pr_type || 'single_weight', // Default to single_weight if missing
+        pr_type: record.pr_type || 'single_weight',
         total_volume: record.total_volume || null,
         exercise_name: record.exercises?.name || 'Unknown Exercise'
       })) as PersonalRecordWithExercise[];
@@ -71,7 +71,7 @@ export const usePersonalRecords = (clientId?: string) => {
   const savePRMutation = useMutation({
     mutationFn: async (prData: {
       clientId: string;
-      exerciseId: string;
+      exerciseId: string; // Now correctly handles string exercise IDs
       weight: number;
       reps: number;
       setNumber: number;
@@ -86,7 +86,7 @@ export const usePersonalRecords = (clientId?: string) => {
         .from('personal_records')
         .insert({
           client_id: prData.clientId,
-          exercise_id: prData.exerciseId,
+          exercise_id: prData.exerciseId, // Now correctly handles string exercise IDs
           weight: prData.weight,
           reps: prData.reps,
           set_number: prData.setNumber,
@@ -116,7 +116,7 @@ export const usePersonalRecords = (clientId?: string) => {
 
   const checkAndSavePRs = async (
     clientId: string,
-    exerciseId: string,
+    exerciseId: string, // Now correctly handles string exercise IDs
     weight: number,
     reps: number,
     setNumber: number,
