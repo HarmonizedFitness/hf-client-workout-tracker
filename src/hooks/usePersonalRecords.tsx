@@ -6,13 +6,14 @@ import { toast } from '@/hooks/use-toast';
 import { PersonalRecordWithExercise, PRCheckData } from '@/types/personalRecord';
 import { fetchPersonalRecords, savePR } from '@/services/personalRecordService';
 import { mapPersonalRecordsWithExercises, checkForNewPRs } from '@/utils/personalRecordUtils';
+import { clearAllPRsForClient, recalculatePRsFromWorkoutHistory } from '@/utils/prRecalculation';
 
 export const usePersonalRecords = (clientId?: string) => {
   const { trainer } = useTrainer();
   const { customExercises } = useExercises();
   const queryClient = useQueryClient();
 
-  const { data: personalRecords = [], isLoading } = useQuery({
+  const { data: personalRecords = [], isLoading, refetch } = useQuery({
     queryKey: ['personal-records', trainer?.id, clientId],
     queryFn: async () => {
       if (!trainer?.id) return [];
@@ -30,6 +31,28 @@ export const usePersonalRecords = (clientId?: string) => {
     },
     onError: (error) => {
       console.error('Error upserting PR:', error);
+    },
+  });
+
+  const recalculatePRsMutation = useMutation({
+    mutationFn: async (clientId: string) => {
+      await clearAllPRsForClient(clientId);
+      return await recalculatePRsFromWorkoutHistory(clientId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['personal-records'] });
+      toast({
+        title: "PRs Recalculated",
+        description: "Personal records have been recalculated from workout history.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error recalculating PRs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to recalculate personal records. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -76,10 +99,17 @@ export const usePersonalRecords = (clientId?: string) => {
     }
   };
 
+  const recalculatePRs = (clientId: string) => {
+    recalculatePRsMutation.mutate(clientId);
+  };
+
   return {
     personalRecords,
     isLoading,
     checkAndSavePRs,
+    recalculatePRs,
+    isRecalculating: recalculatePRsMutation.isPending,
     isSavingPR: savePRMutation.isPending,
+    refetch,
   };
 };

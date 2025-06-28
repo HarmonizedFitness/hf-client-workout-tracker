@@ -10,7 +10,7 @@ export const useSessionPROperations = ({ client }: UseSessionPROperationsProps) 
   const { personalRecords, checkAndSavePRs } = usePersonalRecords(client.id);
 
   const getCurrentPR = (exerciseId: string): number | undefined => {
-    // Find the absolute maximum weight lifted for this exercise
+    // Find the absolute maximum weight lifted for this exercise (single_weight PR type)
     const maxWeightPR = personalRecords
       .filter(pr => pr.exercise_id === exerciseId && pr.pr_type === 'single_weight')
       .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
@@ -20,7 +20,11 @@ export const useSessionPROperations = ({ client }: UseSessionPROperationsProps) 
 
   const getTotalPotentialPRs = (exerciseEntries: Array<{ exerciseId: string; sets: Array<{ weight: string; reps: string }> }>) => {
     return exerciseEntries.reduce((total, entry) => {
-      const currentMaxWeight = getCurrentPR(entry.exerciseId) || 0;
+      // Get current PRs for this exercise
+      const currentMaxWeight = personalRecords
+        .filter(pr => pr.exercise_id === entry.exerciseId && pr.pr_type === 'single_weight')
+        .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
+        
       const currentMaxVolume = personalRecords
         .filter(pr => pr.exercise_id === entry.exerciseId && pr.pr_type === 'volume')
         .reduce((max, pr) => (pr.total_volume || 0) > max ? (pr.total_volume || 0) : max, 0);
