@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, Trophy, CheckCircle, Edit } from 'lucide-react';
+import { kgToLbs } from '@/utils/weightConversions';
 
 interface IndividualSet {
   setNumber: number;
@@ -60,7 +61,7 @@ const IndividualSetEntry = ({
 
   const isNewPR = (weight: string) => {
     const weightNum = parseFloat(weight);
-    return currentPR && weightNum > currentPR;
+    return currentPR && weightNum > kgToLbs(currentPR);
   };
 
   const getCompletedSetsCount = () => {
@@ -92,7 +93,7 @@ const IndividualSetEntry = ({
               {currentPR && (
                 <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 ml-2">
                   <Trophy className="h-3 w-3 mr-1" />
-                  PR: {currentPR} lbs
+                  PR: {kgToLbs(currentPR)} lbs
                 </Badge>
               )}
             </div>
@@ -120,7 +121,7 @@ const IndividualSetEntry = ({
           {currentPR && (
             <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
               <Trophy className="h-3 w-3 mr-1" />
-              Current PR: {currentPR} lbs
+              Current PR: {kgToLbs(currentPR)} lbs
             </Badge>
           )}
         </CardTitle>

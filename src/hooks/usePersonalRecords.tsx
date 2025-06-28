@@ -73,7 +73,7 @@ export const usePersonalRecords = (clientId?: string) => {
   const savePRMutation = useMutation({
     mutationFn: async (prData: {
       clientId: string;
-      exerciseId: string; // Now correctly handles string exercise IDs
+      exerciseId: string;
       weight: number;
       reps: number;
       setNumber: number;
@@ -82,13 +82,14 @@ export const usePersonalRecords = (clientId?: string) => {
       prType: 'single_weight' | 'volume';
       totalVolume?: number;
     }) => {
-      console.log('Saving PR:', prData);
+      console.log('Upserting PR:', prData);
       
+      // Use UPSERT to maintain only one PR per exercise type per client
       const { data, error } = await supabase
         .from('personal_records')
-        .insert({
+        .upsert({
           client_id: prData.clientId,
-          exercise_id: prData.exerciseId, // Now correctly handles string exercise IDs
+          exercise_id: prData.exerciseId,
           weight: prData.weight,
           reps: prData.reps,
           set_number: prData.setNumber,
@@ -96,29 +97,32 @@ export const usePersonalRecords = (clientId?: string) => {
           session_id: prData.sessionId,
           pr_type: prData.prType,
           total_volume: prData.totalVolume,
+        }, {
+          onConflict: 'client_id,exercise_id,pr_type',
+          ignoreDuplicates: false
         })
         .select()
         .single();
 
       if (error) {
-        console.error('Error saving PR:', error);
+        console.error('Error upserting PR:', error);
         throw error;
       }
       
-      console.log('PR saved successfully:', data);
+      console.log('PR upserted successfully:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personal-records'] });
     },
     onError: (error) => {
-      console.error('Error saving PR:', error);
+      console.error('Error upserting PR:', error);
     },
   });
 
   const checkAndSavePRs = async (
     clientId: string,
-    exerciseId: string, // Now correctly handles string exercise IDs
+    exerciseId: string,
     weight: number,
     reps: number,
     setNumber: number,
@@ -191,14 +195,14 @@ export const usePersonalRecords = (clientId?: string) => {
         });
       }
 
-      // Save new PRs
+      // Save new PRs (will upsert existing ones)
       for (const pr of newPRs) {
         await savePRMutation.mutateAsync(pr);
       }
 
       const hasPRs = newPRs.length > 0;
       if (hasPRs) {
-        console.log(`Saved ${newPRs.length} new PR(s)`);
+        console.log(`Updated ${newPRs.length} PR(s)`);
         toast({
           title: "New Personal Record!",
           description: `Congratulations on ${newPRs.length} new PR${newPRs.length > 1 ? 's' : ''}!`,

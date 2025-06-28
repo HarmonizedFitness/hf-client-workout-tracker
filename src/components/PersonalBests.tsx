@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, TrendingUp, Calendar, Weight, Activity } from 'lucide-react';
 import { SupabaseClient } from '@/hooks/useSupabaseClients';
 import { usePersonalRecords } from '@/hooks/usePersonalRecords';
+import { kgToLbs } from '@/utils/weightConversions';
 
 interface PersonalBestsProps {
   client: SupabaseClient;
@@ -113,7 +114,7 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-yellow-50 text-yellow-800">
                           <TrendingUp className="h-3 w-3 mr-1" />
-                          {pr.weight}kg × {pr.reps}
+                          {kgToLbs(pr.weight)} lbs × {pr.reps}
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
@@ -151,11 +152,11 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-blue-50 text-blue-800">
                           <Activity className="h-3 w-3 mr-1" />
-                          {pr.total_volume}kg total
+                          {kgToLbs(pr.total_volume || 0)} lbs total
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {pr.weight}kg × {pr.reps} reps
+                        {kgToLbs(pr.weight)} lbs × {pr.reps} reps
                       </div>
                     </div>
                   </div>

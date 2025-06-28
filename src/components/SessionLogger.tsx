@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Client } from '@/types/exercise';
@@ -11,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { useExercises } from '@/hooks/useExercises';
 import { useWorkoutSessions } from '@/hooks/useWorkoutSessions';
 import { usePersonalRecords } from '@/hooks/usePersonalRecords';
+import { lbsToKg, kgToLbs } from '@/utils/weightConversions';
 
 interface SessionLoggerProps {
   client: Client;
@@ -112,18 +112,19 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
 
       const today = new Date().toISOString().split('T')[0];
 
-      // First, collect all completed sets
+      // First, collect all completed sets and convert weights from LBS to KG
       for (const entry of exerciseEntries) {
         for (const set of entry.sets) {
           if (set.reps && set.weight) {
             const reps = parseInt(set.reps);
-            const weight = parseFloat(set.weight);
+            const weightInLbs = parseFloat(set.weight);
+            const weightInKg = lbsToKg(weightInLbs); // Convert to KG for database storage
             
             completedSets.push({
               exerciseId: entry.exerciseId,
               setNumber: set.setNumber,
               reps,
-              weight,
+              weight: weightInKg, // Store in KG
               isPR: false, // We'll update this after checking PRs
             });
           }
@@ -160,7 +161,7 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
         const hasPR = await checkAndSavePRs(
           client.id,
           set.exerciseId,
-          set.weight,
+          set.weight, // Already in KG
           set.reps,
           set.setNumber,
           today,
@@ -210,8 +211,8 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
     return exerciseEntries.reduce((total, entry) => {
       const currentPR = getCurrentPR(entry.exerciseId);
       return total + entry.sets.filter(set => {
-        const weight = parseFloat(set.weight);
-        return set.weight && (!currentPR || weight > currentPR);
+        const weightInLbs = parseFloat(set.weight);
+        return set.weight && (!currentPR || weightInLbs > kgToLbs(currentPR));
       }).length;
     }, 0);
   };
