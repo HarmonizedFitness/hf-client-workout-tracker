@@ -1,7 +1,6 @@
 
 import { PersonalRecord, PersonalRecordWithExercise, PRCheckData, PRSaveData } from '@/types/personalRecord';
 import { initialExercises } from '@/data/exerciseData';
-import { lbsToKg } from '@/utils/weightConversions';
 
 export const mapPersonalRecordsWithExercises = (records: PersonalRecord[]): PersonalRecordWithExercise[] => {
   return records.map(record => {
@@ -23,9 +22,9 @@ export const checkForNewPRs = (
   
   console.log('Checking PRs for:', checkData);
   
-  // Convert LBS input to KG for database storage
-  const weightInKg = lbsToKg(weight);
-  const totalVolumeKg = weightInKg * reps;
+  // Weight is already in LBS - no conversion needed
+  const weightInLbs = weight;
+  const totalVolumeLbs = weightInLbs * reps;
   
   const exercisePRs = existingPRs.filter(
     pr => pr.client_id === clientId && pr.exercise_id === exerciseId
@@ -40,14 +39,14 @@ export const checkForNewPRs = (
     .filter(pr => pr.pr_type === 'single_weight')
     .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
 
-  console.log('Current max weight PR (KG):', maxWeightPR, 'New weight (KG):', weightInKg);
+  console.log('Current max weight PR (LBS):', maxWeightPR, 'New weight (LBS):', weightInLbs);
 
-  if (weightInKg > maxWeightPR) {
+  if (weightInLbs > maxWeightPR) {
     console.log('New single weight PR detected!');
     newPRs.push({
       clientId,
       exerciseId,
-      weight: weightInKg,
+      weight: weightInLbs,
       reps,
       setNumber,
       date,
@@ -61,20 +60,20 @@ export const checkForNewPRs = (
     .filter(pr => pr.pr_type === 'volume')
     .reduce((max, pr) => (pr.total_volume || 0) > max ? (pr.total_volume || 0) : max, 0);
 
-  console.log('Current max volume PR (KG):', maxVolumePR, 'New volume (KG):', totalVolumeKg);
+  console.log('Current max volume PR (LBS):', maxVolumePR, 'New volume (LBS):', totalVolumeLbs);
 
-  if (totalVolumeKg > maxVolumePR) {
+  if (totalVolumeLbs > maxVolumePR) {
     console.log('New volume PR detected!');
     newPRs.push({
       clientId,
       exerciseId,
-      weight: weightInKg,
+      weight: weightInLbs,
       reps,
       setNumber,
       date,
       sessionId,
       prType: 'volume',
-      totalVolume: totalVolumeKg,
+      totalVolume: totalVolumeLbs,
     });
   }
 

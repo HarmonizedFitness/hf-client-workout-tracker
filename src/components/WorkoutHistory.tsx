@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { SupabaseClient } from '@/hooks/useSupabaseClients';
 import { useWorkoutSessions } from '@/hooks/useWorkoutSessions';
 import { useExercises } from '@/hooks/useExercises';
-import { kgToLbs } from '@/utils/weightConversions';
+import { formatWeight } from '@/utils/weightConversions';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -211,7 +211,7 @@ const WorkoutHistory = ({ client }: WorkoutHistoryProps) => {
                                 <div key={set.id} className="flex items-center justify-between text-sm">
                                   <span>Set {set.set_number}</span>
                                   <div className="flex items-center gap-2">
-                                    <span>{kgToLbs(set.weight)} lbs × {set.reps}</span>
+                                    <span>{formatWeight(set.weight)} × {set.reps}</span>
                                     {set.is_pr && (
                                       <Badge variant="secondary" className="bg-yellow-50 text-yellow-800 text-xs">
                                         PR

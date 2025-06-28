@@ -1,7 +1,6 @@
 
 import { toast } from '@/hooks/use-toast';
 import { useWorkoutSessions } from '@/hooks/useWorkoutSessions';
-import { lbsToKg } from '@/utils/weightConversions';
 import { Client } from '@/types/exercise';
 import { ExerciseEntry } from './useSessionState';
 
@@ -45,19 +44,18 @@ export const useSessionOperations = ({
 
       const today = new Date().toISOString().split('T')[0];
 
-      // First, collect all completed sets and convert weights from LBS to KG
+      // Collect all completed sets - weights are already in LBS
       for (const entry of exerciseEntries) {
         for (const set of entry.sets) {
           if (set.reps && set.weight) {
             const reps = parseInt(set.reps);
             const weightInLbs = parseFloat(set.weight);
-            const weightInKg = lbsToKg(weightInLbs); // Convert to KG for database storage
             
             completedSets.push({
               exerciseId: entry.exerciseId,
               setNumber: set.setNumber,
               reps,
-              weight: weightInKg, // Store in KG
+              weight: weightInLbs, // Store in LBS
               isPR: false, // We'll update this after checking PRs
             });
           }
@@ -94,7 +92,7 @@ export const useSessionOperations = ({
         const hasPR = await checkAndSavePRs(
           client.id,
           set.exerciseId,
-          set.weight, // Already in KG
+          set.weight, // Already in LBS
           set.reps,
           set.setNumber,
           today,

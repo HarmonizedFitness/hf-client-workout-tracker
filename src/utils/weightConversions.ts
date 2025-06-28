@@ -1,16 +1,17 @@
 
-// Utility functions for weight conversions between KG and LBS
-export const KG_TO_LBS = 2.20462;
-export const LBS_TO_KG = 1 / KG_TO_LBS;
+// Utility functions for weight display formatting
+// All weights are now stored in LBS in the database
 
-export const kgToLbs = (kg: number): number => {
-  return Math.round(kg * KG_TO_LBS * 10) / 10; // Round to 1 decimal place
+export const formatWeight = (lbs: number): string => {
+  return `${lbs} lbs`;
 };
 
-export const lbsToKg = (lbs: number): number => {
-  return Math.round(lbs * LBS_TO_KG * 10) / 10; // Round to 1 decimal place
+export const parseWeight = (weightString: string): number => {
+  // Parse weight input, removing 'lbs' suffix if present
+  const cleaned = weightString.replace(/[^\d.]/g, '');
+  return parseFloat(cleaned) || 0;
 };
 
-export const formatWeight = (kg: number): string => {
-  return `${kgToLbs(kg)} lbs`;
+export const validateWeight = (weight: number): boolean => {
+  return weight > 0 && weight <= 2000; // Reasonable limits for gym weights
 };

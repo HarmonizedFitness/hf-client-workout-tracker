@@ -1,6 +1,5 @@
 
 import { usePersonalRecords } from '@/hooks/usePersonalRecords';
-import { kgToLbs } from '@/utils/weightConversions';
 import { Client } from '@/types/exercise';
 
 interface UseSessionPROperationsProps {
@@ -23,7 +22,7 @@ export const useSessionPROperations = ({ client }: UseSessionPROperationsProps) 
       const currentPR = getCurrentPR(entry.exerciseId);
       return total + entry.sets.filter(set => {
         const weightInLbs = parseFloat(set.weight);
-        return set.weight && (!currentPR || weightInLbs > kgToLbs(currentPR));
+        return set.weight && (!currentPR || weightInLbs > currentPR);
       }).length;
     }, 0);
   };
