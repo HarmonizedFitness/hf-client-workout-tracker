@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -41,32 +40,16 @@ const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
       cost_per_session: newClientCostPerSession,
     };
 
-    try {
-      const newClient = await addClient(clientData);
-      if (newClient) {
-        onClientAdded(newClient);
-        
-        // Reset form and close dialog
-        setNewClientName('');
-        setNewClientEmail('');
-        setNewClientPhone('');
-        setNewClientTrainingDays(3);
-        setNewClientCostPerSession(75);
-        setOpen(false);
-
-        toast({
-          title: "Client Added!",
-          description: `${newClient.name} has been added to your client list.`,
-        });
-      }
-    } catch (error) {
-      console.error('Error adding client:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add client. Please try again.",
-        variant: "destructive",
-      });
-    }
+    // Call the mutation - it handles success/error through callbacks
+    addClient(clientData);
+    
+    // Reset form and close dialog immediately since mutation handles the rest
+    setNewClientName('');
+    setNewClientEmail('');
+    setNewClientPhone('');
+    setNewClientTrainingDays(3);
+    setNewClientCostPerSession(75);
+    setOpen(false);
   };
 
   return (
