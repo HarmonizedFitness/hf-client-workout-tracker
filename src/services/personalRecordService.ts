@@ -27,7 +27,11 @@ export const fetchPersonalRecords = async (trainerId: string, clientId?: string)
   
   if (error) throw error;
   
-  return data || [];
+  // Type assertion to handle the pr_type conversion from database string to our union type
+  return (data || []).map(record => ({
+    ...record,
+    pr_type: (record.pr_type || 'single_weight') as 'single_weight' | 'volume'
+  })) as PersonalRecord[];
 };
 
 export const savePR = async (prData: PRSaveData): Promise<PersonalRecord> => {
@@ -58,5 +62,10 @@ export const savePR = async (prData: PRSaveData): Promise<PersonalRecord> => {
   }
   
   console.log('PR upserted successfully:', data);
-  return data;
+  
+  // Type assertion to handle the pr_type conversion from database string to our union type
+  return {
+    ...data,
+    pr_type: (data.pr_type || 'single_weight') as 'single_weight' | 'volume'
+  } as PersonalRecord;
 };
