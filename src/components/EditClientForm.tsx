@@ -23,14 +23,20 @@ const EditClientForm = ({
 }: EditClientFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted with state:', formState);
+    console.log('📋 Form submitted with state:', formState);
+    console.log('⏳ isLoading state:', isLoading);
     onSubmit();
   };
 
   const handleFieldChange = (field: keyof ClientEditFormState, value: string | number) => {
-    console.log(`Field ${field} changed to:`, value);
+    console.log(`✏️ Field ${field} changed to:`, value);
+    console.log('🔒 Form disabled state:', isLoading);
     onUpdateField(field, value);
   };
+
+  // Add debugging for render
+  console.log('🎨 EditClientForm rendering with isLoading:', isLoading);
+  console.log('📊 Current form state:', formState);
 
   return (
     <Card>
@@ -49,8 +55,9 @@ const EditClientForm = ({
                 placeholder="Client name"
                 required
                 disabled={isLoading}
-                className={isLoading ? "opacity-50" : ""}
+                className={isLoading ? "opacity-50 cursor-not-allowed" : ""}
               />
+              {isLoading && <p className="text-xs text-gray-500">Field is disabled (loading: {String(isLoading)})</p>}
             </div>
 
             <div className="space-y-2">
@@ -62,7 +69,7 @@ const EditClientForm = ({
                 onChange={(e) => handleFieldChange('email', e.target.value)}
                 placeholder="client@example.com"
                 disabled={isLoading}
-                className={isLoading ? "opacity-50" : ""}
+                className={isLoading ? "opacity-50 cursor-not-allowed" : ""}
               />
             </div>
 
@@ -74,7 +81,7 @@ const EditClientForm = ({
                 onChange={(e) => handleFieldChange('phone', e.target.value)}
                 placeholder="(555) 123-4567"
                 disabled={isLoading}
-                className={isLoading ? "opacity-50" : ""}
+                className={isLoading ? "opacity-50 cursor-not-allowed" : ""}
               />
             </div>
 
@@ -88,7 +95,7 @@ const EditClientForm = ({
                 value={formState.training_days_per_week}
                 onChange={(e) => handleFieldChange('training_days_per_week', parseInt(e.target.value) || 1)}
                 disabled={isLoading}
-                className={isLoading ? "opacity-50" : ""}
+                className={isLoading ? "opacity-50 cursor-not-allowed" : ""}
               />
             </div>
 
@@ -102,7 +109,7 @@ const EditClientForm = ({
                 value={formState.cost_per_session}
                 onChange={(e) => handleFieldChange('cost_per_session', parseFloat(e.target.value) || 0)}
                 disabled={isLoading}
-                className={isLoading ? "opacity-50" : ""}
+                className={isLoading ? "opacity-50 cursor-not-allowed" : ""}
               />
             </div>
 
@@ -114,7 +121,7 @@ const EditClientForm = ({
                 onChange={(e) => handleFieldChange('goals', e.target.value)}
                 placeholder="Client's fitness goals..."
                 disabled={isLoading}
-                className={`min-h-[100px] ${isLoading ? "opacity-50" : ""}`}
+                className={`min-h-[100px] ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               />
             </div>
 
@@ -126,7 +133,7 @@ const EditClientForm = ({
                 onChange={(e) => handleFieldChange('notes', e.target.value)}
                 placeholder="Additional notes about the client..."
                 disabled={isLoading}
-                className={`min-h-[100px] ${isLoading ? "opacity-50" : ""}`}
+                className={`min-h-[100px] ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               />
             </div>
           </div>

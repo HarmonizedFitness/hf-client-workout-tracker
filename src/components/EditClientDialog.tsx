@@ -28,24 +28,32 @@ const EditClientDialog = ({ client, open, onOpenChange }: EditClientDialogProps)
 
   useEffect(() => {
     if (client && open) {
-      console.log('Initializing edit form for client:', client);
+      console.log('🎯 Dialog opened with client:', client.name);
+      console.log('🔧 Initializing edit form...');
       initializeForm(client);
+    } else if (!open) {
+      console.log('❌ Dialog closed, resetting form');
+      resetForm();
     }
-  }, [client, open, initializeForm]);
+  }, [client, open, initializeForm, resetForm]);
 
   const handleSubmit = async () => {
-    if (!client) return;
+    if (!client) {
+      console.error('❌ No client selected for update');
+      return;
+    }
     
+    console.log('📤 Submitting form for client:', client.name);
     const success = await handleUpdateClient(client.id);
     if (success) {
+      console.log('✅ Update successful, closing dialog');
       onOpenChange(false);
-      resetForm();
     }
   };
 
   const handleCancel = () => {
+    console.log('🚫 Edit cancelled, closing dialog');
     onOpenChange(false);
-    resetForm();
   };
 
   if (!client) return null;

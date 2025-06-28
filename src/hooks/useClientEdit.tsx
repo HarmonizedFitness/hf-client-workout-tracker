@@ -28,7 +28,11 @@ export const useClientEdit = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const initializeForm = (client: SupabaseClient) => {
-    console.log('Initializing form with client data:', client);
+    console.log('🔄 Initializing form with client data:', client);
+    
+    // Reset loading state when initializing
+    setIsUpdating(false);
+    
     setFormState({
       name: client.name,
       email: client.email || '',
@@ -38,10 +42,14 @@ export const useClientEdit = () => {
       goals: client.goals || '',
       notes: client.notes || '',
     });
+    
+    console.log('✅ Form initialized, isUpdating reset to false');
   };
 
   const updateFormField = (field: keyof ClientEditFormState, value: string | number) => {
-    console.log('Updating form field:', field, 'with value:', value);
+    console.log('📝 Updating form field:', field, 'with value:', value);
+    console.log('📊 Current isUpdating state:', isUpdating);
+    
     setFormState(prev => ({
       ...prev,
       [field]: value,
@@ -49,8 +57,9 @@ export const useClientEdit = () => {
   };
 
   const handleUpdateClient = async (clientId: string) => {
-    console.log('Starting client update for ID:', clientId);
-    console.log('Form state:', formState);
+    console.log('🚀 Starting client update for ID:', clientId);
+    console.log('📋 Form state:', formState);
+    console.log('⏳ Setting isUpdating to true');
     
     if (!formState.name.trim()) {
       toast({
@@ -63,7 +72,7 @@ export const useClientEdit = () => {
 
     setIsUpdating(true);
     try {
-      console.log('Calling updateClient mutation...');
+      console.log('📡 Calling updateClient mutation...');
       
       const updateData = {
         id: clientId,
@@ -78,11 +87,11 @@ export const useClientEdit = () => {
         }
       };
       
-      console.log('Update data being sent:', updateData);
+      console.log('📦 Update data being sent:', updateData);
       
       await updateClient(updateData);
       
-      console.log('Client update successful');
+      console.log('✅ Client update successful');
       toast({
         title: "Client Updated!",
         description: `${formState.name} has been updated successfully.`,
@@ -90,16 +99,13 @@ export const useClientEdit = () => {
       
       return true;
     } catch (error) {
-      console.error('Error updating client:', error);
+      console.error('❌ Error updating client:', error);
       
-      // More detailed error handling
       let errorMessage = 'Failed to update client. Please try again.';
       
       if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
+        console.error('📝 Error message:', error.message);
         
-        // Check for specific database errors
         if (error.message.includes('row-level security')) {
           errorMessage = 'Permission denied. You can only edit your own clients.';
         } else if (error.message.includes('violates')) {
@@ -119,12 +125,14 @@ export const useClientEdit = () => {
       
       return false;
     } finally {
+      console.log('🏁 Setting isUpdating to false');
       setIsUpdating(false);
     }
   };
 
   const resetForm = () => {
-    console.log('Resetting form to initial state');
+    console.log('🔄 Resetting form to initial state');
+    setIsUpdating(false);
     setFormState({
       name: '',
       email: '',
