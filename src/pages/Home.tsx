@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,8 @@ import PageLayout from '@/components/PageLayout';
 import { useClient } from '@/context/ClientContext';
 
 const Home = () => {
+  console.log('Home component rendering');
+  
   const [localSelectedClient, setLocalSelectedClient] = useState<SupabaseClient | null>(null);
   const { setSelectedClient } = useClient();
   const { activeClients, isLoading } = useSupabaseClients();
@@ -21,6 +22,7 @@ const Home = () => {
   console.log('Home component - activeClients length:', activeClients.length);
   
   const handleClientSelect = (client: SupabaseClient) => {
+    console.log('Client selected:', client.name);
     setLocalSelectedClient(client);
     setSelectedClient(client); // Update global context
   };
@@ -33,6 +35,7 @@ const Home = () => {
 
   // Show loading state
   if (isLoading) {
+    console.log('Home component showing loading state');
     return (
       <PageLayout>
         <div className="mb-8">
@@ -63,6 +66,7 @@ const Home = () => {
 
   // Show empty state if no clients
   if (activeClients.length === 0) {
+    console.log('Home component showing empty state');
     return (
       <PageLayout>
         <div className="mb-8">
@@ -182,6 +186,7 @@ const Home = () => {
     );
   }
 
+  console.log('Home component showing main dashboard');
   return (
     <PageLayout>
       {/* Header */}
