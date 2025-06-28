@@ -80,6 +80,8 @@ export const usePersonalRecords = (clientId?: string) => {
       prType: 'single_weight' | 'volume';
       totalVolume?: number;
     }) => {
+      console.log('Saving PR:', prData);
+      
       const { data, error } = await supabase
         .from('personal_records')
         .insert({
@@ -96,15 +98,16 @@ export const usePersonalRecords = (clientId?: string) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving PR:', error);
+        throw error;
+      }
+      
+      console.log('PR saved successfully:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personal-records'] });
-      toast({
-        title: "New Personal Record!",
-        description: "Congratulations on the new PR!",
-      });
     },
     onError: (error) => {
       console.error('Error saving PR:', error);
@@ -119,68 +122,92 @@ export const usePersonalRecords = (clientId?: string) => {
     setNumber: number,
     date: string,
     sessionId?: string
-  ) => {
-    // Get current PRs for this exercise
-    const existingPRs = personalRecords.filter(
-      pr => pr.client_id === clientId && pr.exercise_id === exerciseId
-    );
+  ): Promise<boolean> => {
+    try {
+      console.log('Checking PRs for:', { clientId, exerciseId, weight, reps, setNumber, date, sessionId });
+      
+      // Get current PRs for this exercise
+      const existingPRs = personalRecords.filter(
+        pr => pr.client_id === clientId && pr.exercise_id === exerciseId
+      );
 
-    const totalVolume = weight * reps;
-    let newPRs: Array<{
-      clientId: string;
-      exerciseId: string;
-      weight: number;
-      reps: number;
-      setNumber: number;
-      date: string;
-      sessionId?: string;
-      prType: 'single_weight' | 'volume';
-      totalVolume?: number;
-    }> = [];
+      console.log('Existing PRs:', existingPRs);
 
-    // Check for single weight PR (1RM equivalent)
-    const maxWeightPR = existingPRs
-      .filter(pr => pr.pr_type === 'single_weight')
-      .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
+      const totalVolume = weight * reps;
+      let newPRs: Array<{
+        clientId: string;
+        exerciseId: string;
+        weight: number;
+        reps: number;
+        setNumber: number;
+        date: string;
+        sessionId?: string;
+        prType: 'single_weight' | 'volume';
+        totalVolume?: number;
+      }> = [];
 
-    if (weight > maxWeightPR) {
-      newPRs.push({
-        clientId,
-        exerciseId,
-        weight,
-        reps,
-        setNumber,
-        date,
-        sessionId,
-        prType: 'single_weight',
-      });
+      // Check for single weight PR (1RM equivalent)
+      const maxWeightPR = existingPRs
+        .filter(pr => pr.pr_type === 'single_weight')
+        .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
+
+      console.log('Current max weight PR:', maxWeightPR, 'New weight:', weight);
+
+      if (weight > maxWeightPR) {
+        console.log('New single weight PR detected!');
+        newPRs.push({
+          clientId,
+          exerciseId,
+          weight,
+          reps,
+          setNumber,
+          date,
+          sessionId,
+          prType: 'single_weight',
+        });
+      }
+
+      // Check for volume PR
+      const maxVolumePR = existingPRs
+        .filter(pr => pr.pr_type === 'volume')
+        .reduce((max, pr) => (pr.total_volume || 0) > max ? (pr.total_volume || 0) : max, 0);
+
+      console.log('Current max volume PR:', maxVolumePR, 'New volume:', totalVolume);
+
+      if (totalVolume > maxVolumePR) {
+        console.log('New volume PR detected!');
+        newPRs.push({
+          clientId,
+          exerciseId,
+          weight,
+          reps,
+          setNumber,
+          date,
+          sessionId,
+          prType: 'volume',
+          totalVolume,
+        });
+      }
+
+      // Save new PRs
+      for (const pr of newPRs) {
+        await savePRMutation.mutateAsync(pr);
+      }
+
+      const hasPRs = newPRs.length > 0;
+      if (hasPRs) {
+        console.log(`Saved ${newPRs.length} new PR(s)`);
+        toast({
+          title: "New Personal Record!",
+          description: `Congratulations on ${newPRs.length} new PR${newPRs.length > 1 ? 's' : ''}!`,
+        });
+      }
+
+      return hasPRs;
+    } catch (error) {
+      console.error('Error checking/saving PRs:', error);
+      return false;
     }
-
-    // Check for volume PR
-    const maxVolumePR = existingPRs
-      .filter(pr => pr.pr_type === 'volume')
-      .reduce((max, pr) => (pr.total_volume || 0) > max ? (pr.total_volume || 0) : max, 0);
-
-    if (totalVolume > maxVolumePR) {
-      newPRs.push({
-        clientId,
-        exerciseId,
-        weight,
-        reps,
-        setNumber,
-        date,
-        sessionId,
-        prType: 'volume',
-        totalVolume,
-      });
-    }
-
-    // Save new PRs
-    for (const pr of newPRs) {
-      await savePRMutation.mutateAsync(pr);
-    }
-
-    return newPRs.length > 0;
   };
 
   return {

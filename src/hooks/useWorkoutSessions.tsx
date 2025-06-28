@@ -76,6 +76,8 @@ export const useWorkoutSessions = (clientId?: string) => {
     }) => {
       if (!trainer?.id) throw new Error('No trainer found');
 
+      console.log('Saving workout session with data:', sessionData);
+
       // Create the workout session first
       const { data: session, error: sessionError } = await supabase
         .from('workout_sessions')
@@ -89,7 +91,12 @@ export const useWorkoutSessions = (clientId?: string) => {
         .select()
         .single();
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {
+        console.error('Error creating session:', sessionError);
+        throw sessionError;
+      }
+
+      console.log('Session created successfully:', session);
 
       // Create all workout sets
       const setsToInsert = sessionData.sets.map(set => ({
@@ -101,15 +108,23 @@ export const useWorkoutSessions = (clientId?: string) => {
         is_pr: set.isPR,
       }));
 
+      console.log('Inserting workout sets:', setsToInsert);
+
       const { error: setsError } = await supabase
         .from('workout_sets')
         .insert(setsToInsert);
 
-      if (setsError) throw setsError;
+      if (setsError) {
+        console.error('Error creating workout sets:', setsError);
+        throw setsError;
+      }
+
+      console.log('Workout sets created successfully');
 
       return session;
     },
-    onSuccess: () => {
+    onSuccess: (session) => {
+      console.log('Session saved successfully, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['workout-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['personal-records'] });
       toast({
@@ -118,19 +133,19 @@ export const useWorkoutSessions = (clientId?: string) => {
       });
     },
     onError: (error) => {
+      console.error('Error saving session:', error);
       toast({
         title: "Error",
         description: "Failed to save workout session. Please try again.",
         variant: "destructive",
       });
-      console.error('Error saving session:', error);
     },
   });
 
   return {
     sessions,
     isLoading,
-    saveSession: saveSessionMutation.mutate,
+    saveSession: saveSessionMutation.mutateAsync, // Return mutateAsync to handle promises
     isSavingSession: saveSessionMutation.isPending,
   };
 };

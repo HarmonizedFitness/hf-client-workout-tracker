@@ -33,8 +33,9 @@ interface ExerciseEntry {
 const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }: SessionLoggerProps) => {
   const [exerciseEntries, setExerciseEntries] = useState<ExerciseEntry[]>([]);
   const [sessionNotes, setSessionNotes] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const { allExercises } = useExercises();
-  const { saveSession: saveWorkoutSession, isSavingSession } = useWorkoutSessions();
+  const { saveSession, isSavingSession } = useWorkoutSessions();
   const { personalRecords, checkAndSavePRs } = usePersonalRecords(client.id);
 
   // Initialize with pre-selected exercises
@@ -97,72 +98,102 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
   };
 
   const handleSaveSession = async () => {
-    const completedSets: Array<{
-      exerciseId: string;
-      setNumber: number;
-      reps: number;
-      weight: number;
-      isPR: boolean;
-    }> = [];
+    try {
+      setIsSaving(true);
+      console.log('Starting session save process...');
 
-    let totalPRs = 0;
-    const today = new Date().toISOString().split('T')[0];
+      const completedSets: Array<{
+        exerciseId: string;
+        setNumber: number;
+        reps: number;
+        weight: number;
+        isPR: boolean;
+      }> = [];
 
-    // Process all sets and check for PRs
-    for (const entry of exerciseEntries) {
-      for (const set of entry.sets) {
-        if (set.reps && set.weight) {
-          const reps = parseInt(set.reps);
-          const weight = parseFloat(set.weight);
-          
-          // Check if this is a PR
-          const hasPR = await checkAndSavePRs(
-            client.id,
-            entry.exerciseId,
-            weight,
-            reps,
-            set.setNumber,
-            today
-          );
-          
-          if (hasPR) totalPRs++;
+      const today = new Date().toISOString().split('T')[0];
 
-          completedSets.push({
-            exerciseId: entry.exerciseId,
-            setNumber: set.setNumber,
-            reps,
-            weight,
-            isPR: hasPR,
-          });
+      // First, collect all completed sets
+      for (const entry of exerciseEntries) {
+        for (const set of entry.sets) {
+          if (set.reps && set.weight) {
+            const reps = parseInt(set.reps);
+            const weight = parseFloat(set.weight);
+            
+            completedSets.push({
+              exerciseId: entry.exerciseId,
+              setNumber: set.setNumber,
+              reps,
+              weight,
+              isPR: false, // We'll update this after checking PRs
+            });
+          }
         }
       }
-    }
 
-    if (completedSets.length === 0) {
+      if (completedSets.length === 0) {
+        toast({
+          title: "No Sets to Save",
+          description: "Complete at least one set before saving your session.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Completed sets collected:', completedSets);
+
+      // Save the session first (without PR flags)
+      const session = await saveSession({
+        clientId: client.id,
+        date: today,
+        sets: completedSets,
+        notes: sessionNotes.trim() || undefined,
+      });
+
+      console.log('Session saved, now checking PRs...');
+
+      // Now check and save PRs with the session ID
+      let totalPRs = 0;
+      const updatedSets = [...completedSets];
+
+      for (let i = 0; i < completedSets.length; i++) {
+        const set = completedSets[i];
+        const hasPR = await checkAndSavePRs(
+          client.id,
+          set.exerciseId,
+          set.weight,
+          set.reps,
+          set.setNumber,
+          today,
+          session.id
+        );
+        
+        if (hasPR) {
+          totalPRs++;
+          updatedSets[i].isPR = true;
+        }
+      }
+
+      console.log('PR checking complete, total PRs:', totalPRs);
+
+      // Clear the form after successful save
+      setExerciseEntries([]);
+      setSessionNotes('');
+
       toast({
-        title: "No Sets to Save",
-        description: "Complete at least one set before saving your session.",
+        title: "Session Saved!",
+        description: `Saved ${completedSets.length} sets for ${client.name}${totalPRs > 0 ? ` with ${totalPRs} new PR${totalPRs > 1 ? 's' : ''}!` : '.'}`,
+      });
+
+    } catch (error) {
+      console.error('Error saving session:', error);
+      toast({
+        title: "Error Saving Session",
+        description: "There was an error saving your workout session. Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsSaving(false);
     }
-
-    // Save the session with all sets
-    saveWorkoutSession({
-      clientId: client.id,
-      date: today,
-      sets: completedSets,
-      notes: sessionNotes.trim() || undefined,
-    });
-
-    // Clear the form after successful save
-    setExerciseEntries([]);
-    setSessionNotes('');
-
-    toast({
-      title: "Session Saved!",  
-      description: `Saved ${completedSets.length} sets for ${client.name}${totalPRs > 0 ? ` with ${totalPRs} new PR${totalPRs > 1 ? 's' : ''}!` : '.'}`,
-    });
   };
 
   const getExercise = (exerciseId: string) => {
@@ -199,7 +230,7 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
           totalCompletedSets={getTotalCompletedSets()}
           totalPotentialPRs={getTotalPotentialPRs()}
           onSaveSession={handleSaveSession}
-          isLoading={isSavingSession}
+          isLoading={isSaving || isSavingSession}
         />
       )}
 
