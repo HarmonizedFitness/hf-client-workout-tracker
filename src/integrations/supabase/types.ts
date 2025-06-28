@@ -129,6 +129,7 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          created_by_trainer_id: string | null
           force_type: string
           id: string
           is_favorite: boolean | null
@@ -140,6 +141,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          created_by_trainer_id?: string | null
           force_type: string
           id?: string
           is_favorite?: boolean | null
@@ -151,6 +153,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          created_by_trainer_id?: string | null
           force_type?: string
           id?: string
           is_favorite?: boolean | null
@@ -163,6 +166,13 @@ export type Database = {
           {
             foreignKeyName: "exercises_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_created_by_trainer_id_fkey"
+            columns: ["created_by_trainer_id"]
             isOneToOne: false
             referencedRelation: "trainers"
             referencedColumns: ["id"]
@@ -432,6 +442,47 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          exercise_ids: string[]
+          id: string
+          is_favorite: boolean | null
+          name: string
+          trainer_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          exercise_ids: string[]
+          id?: string
+          is_favorite?: boolean | null
+          name: string
+          trainer_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          exercise_ids?: string[]
+          id?: string
+          is_favorite?: boolean | null
+          name?: string
+          trainer_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_templates_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
             referencedColumns: ["id"]
           },
         ]

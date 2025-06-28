@@ -5,6 +5,7 @@ import { SupabaseClient } from '@/hooks/useSupabaseClients';
 interface ClientContextType {
   selectedClient: SupabaseClient | null;
   setSelectedClient: (client: SupabaseClient | null) => void;
+  clearSelectedClient: () => void;
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -12,8 +13,12 @@ const ClientContext = createContext<ClientContextType | undefined>(undefined);
 export const ClientProvider = ({ children }: { children: ReactNode }) => {
   const [selectedClient, setSelectedClient] = useState<SupabaseClient | null>(null);
 
+  const clearSelectedClient = () => {
+    setSelectedClient(null);
+  };
+
   return (
-    <ClientContext.Provider value={{ selectedClient, setSelectedClient }}>
+    <ClientContext.Provider value={{ selectedClient, setSelectedClient, clearSelectedClient }}>
       {children}
     </ClientContext.Provider>
   );

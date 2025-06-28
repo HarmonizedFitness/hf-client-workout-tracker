@@ -1,7 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { initialExercises } from '@/data/exerciseData';
 import { WorkoutSet, WorkoutSession, Client, PersonalRecord } from '@/types/exercise';
 import IndividualSetEntry from './IndividualSetEntry';
 import ExerciseSelector from './ExerciseSelector';
@@ -9,9 +8,12 @@ import SessionSummary from './SessionSummary';
 import SessionNotes from './SessionNotes';
 import SessionEmptyState from './SessionEmptyState';
 import { toast } from '@/hooks/use-toast';
+import { useExercises } from '@/hooks/useExercises';
 
 interface SessionLoggerProps {
   client: Client;
+  preSelectedExercises?: string[];
+  workoutTemplateId?: string | null;
 }
 
 interface IndividualSet {
@@ -26,9 +28,26 @@ interface ExerciseEntry {
   collapsed: boolean;
 }
 
-const SessionLogger = ({ client }: SessionLoggerProps) => {
+const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }: SessionLoggerProps) => {
   const [exerciseEntries, setExerciseEntries] = useState<ExerciseEntry[]>([]);
   const [sessionNotes, setSessionNotes] = useState('');
+  const { allExercises } = useExercises();
+
+  // Initialize with pre-selected exercises
+  useEffect(() => {
+    if (preSelectedExercises.length > 0) {
+      const initialEntries = preSelectedExercises.map(exerciseId => ({
+        exerciseId,
+        sets: [
+          { setNumber: 1, reps: '', weight: '' },
+          { setNumber: 2, reps: '', weight: '' },
+          { setNumber: 3, reps: '', weight: '' }
+        ],
+        collapsed: false
+      }));
+      setExerciseEntries(initialEntries);
+    }
+  }, [preSelectedExercises]);
 
   const getCurrentPR = (exerciseId: string): number | undefined => {
     const pr = client.personalRecords.find(pr => pr.exerciseId === exerciseId);
@@ -63,7 +82,7 @@ const SessionLogger = ({ client }: SessionLoggerProps) => {
 
   const removeExerciseFromSession = (exerciseId: string) => {
     setExerciseEntries(exerciseEntries.filter(entry => entry.exerciseId !== exerciseId));
-    const exercise = initialExercises.find(ex => ex.id === exerciseId);
+    const exercise = allExercises.find(ex => ex.id === exerciseId);
     toast({
       title: "Exercise Removed",
       description: `${exercise?.name} has been removed from your session.`,
@@ -78,7 +97,7 @@ const SessionLogger = ({ client }: SessionLoggerProps) => {
   const updatePersonalRecords = (sets: WorkoutSet[]) => {
     sets.forEach(set => {
       if (set.isPB) {
-        const exercise = initialExercises.find(ex => ex.id === set.exerciseId);
+        const exercise = allExercises.find(ex => ex.id === set.exerciseId);
         if (exercise) {
           const newPR: PersonalRecord = {
             exerciseId: set.exerciseId,
@@ -157,7 +176,7 @@ const SessionLogger = ({ client }: SessionLoggerProps) => {
   };
 
   const getExercise = (exerciseId: string) => {
-    return initialExercises.find(ex => ex.id === exerciseId);
+    return allExercises.find(ex => ex.id === exerciseId);
   };
 
   const getTotalCompletedSets = () => {
@@ -227,7 +246,7 @@ const SessionLogger = ({ client }: SessionLoggerProps) => {
         />
       )}
 
-      {exerciseEntries.length === 0 && (
+      {exerciseEntries.length === 0 && !preSelectedExercises.length && (
         <SessionEmptyState clientName={client.name} />
       )}
     </div>

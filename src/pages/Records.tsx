@@ -4,14 +4,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Trophy, Users } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Trophy, Users, X } from 'lucide-react';
 import { useClient } from '@/context/ClientContext';
 import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
 import PageLayout from '@/components/PageLayout';
 import PersonalBests from '@/components/PersonalBests';
 
 const Records = () => {
-  const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient } = useClient();
+  const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient, clearSelectedClient } = useClient();
   const [selectedClient, setSelectedClient] = useState<SupabaseClient | null>(null);
   const { activeClients } = useSupabaseClients();
 
@@ -28,6 +29,11 @@ const Records = () => {
       setSelectedClient(client);
       setGlobalSelectedClient(client); // Update global context
     }
+  };
+
+  const handleClearClient = () => {
+    setSelectedClient(null);
+    clearSelectedClient();
   };
 
   if (!selectedClient) {
@@ -104,6 +110,15 @@ const Records = () => {
                 </Badge>
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearClient}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Clear Selection
+                </Button>
                 <Select value={selectedClient.id} onValueChange={handleClientSelect}>
                   <SelectTrigger className="w-48">
                     <SelectValue />

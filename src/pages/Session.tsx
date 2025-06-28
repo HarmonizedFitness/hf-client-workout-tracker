@@ -4,17 +4,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { SupabaseClient, useSupabaseClients } from '@/hooks/useSupabaseClients';
-import { UserCheck, Users, Plus } from 'lucide-react';
+import { UserCheck, Users, Plus, X } from 'lucide-react';
 import { useClient } from '@/context/ClientContext';
 import PageLayout from '@/components/PageLayout';
 import SessionLogger from '@/components/SessionLogger';
 import { adaptSupabaseClientToLegacyClient } from '@/components/ClientAdapter';
+import { useSearchParams } from 'react-router-dom';
 
 const Session = () => {
-  const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient } = useClient();
+  const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient, clearSelectedClient } = useClient();
   const [selectedClient, setSelectedClient] = useState<SupabaseClient | null>(null);
   const { activeClients } = useSupabaseClients();
+  const [searchParams] = useSearchParams();
+
+  // Check for workout template in URL params
+  const workoutTemplateId = searchParams.get('template');
+  const preSelectedExercises = searchParams.get('exercises')?.split(',') || [];
 
   // Initialize with global client context on mount
   useEffect(() => {
@@ -29,6 +36,11 @@ const Session = () => {
       setSelectedClient(client);
       setGlobalSelectedClient(client); // Update global context
     }
+  };
+
+  const handleClearClient = () => {
+    setSelectedClient(null);
+    clearSelectedClient();
   };
 
   if (!selectedClient) {
@@ -104,6 +116,15 @@ const Session = () => {
                 </Badge>
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearClient}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Clear Selection
+                </Button>
                 <Select value={selectedClient.id} onValueChange={handleClientSelect}>
                   <SelectTrigger className="w-48">
                     <SelectValue />
@@ -122,7 +143,11 @@ const Session = () => {
         </Card>
 
         {/* Session Logger */}
-        <SessionLogger client={adaptSupabaseClientToLegacyClient(selectedClient)} />
+        <SessionLogger 
+          client={adaptSupabaseClientToLegacyClient(selectedClient)}
+          preSelectedExercises={preSelectedExercises}
+          workoutTemplateId={workoutTemplateId}
+        />
       </div>
     </PageLayout>
   );

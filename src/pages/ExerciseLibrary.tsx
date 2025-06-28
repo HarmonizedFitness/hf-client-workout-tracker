@@ -1,216 +1,124 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Plus, Dumbbell } from 'lucide-react';
 import { initialExercises } from '@/data/exerciseData';
 import { Exercise } from '@/types/exercise';
-import { toast } from '@/hooks/use-toast';
-import PageLayout from '@/components/PageLayout';
 import ExerciseLibraryHeader from '@/components/ExerciseLibraryHeader';
-import BulkActionsBar from '@/components/BulkActionsBar';
 import ExerciseFilters from '@/components/ExerciseFilters';
 import ExerciseGrid from '@/components/ExerciseGrid';
-import EditExerciseDialog from '@/components/EditExerciseDialog';
-import DeleteExerciseDialog from '@/components/DeleteExerciseDialog';
+import BulkActionsBar from '@/components/BulkActionsBar';
+import AddExerciseDialog from '@/components/AddExerciseDialog';
+import CreateWorkoutDialog from '@/components/CreateWorkoutDialog';
+import PageLayout from '@/components/PageLayout';
+import { useExercises } from '@/hooks/useExercises';
 
 const ExerciseLibrary = () => {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [muscleGroupFilter, setMuscleGroupFilter] = useState('all');
-  const [forceTypeFilter, setForceTypeFilter] = useState('all');
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [selectedExercises, setSelectedExercises] = useState<Set<string>>(new Set());
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
-  const [deletingExercises, setDeletingExercises] = useState<Exercise[]>([]);
+  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
+  const [selectedForceTypes, setSelectedForceTypes] = useState<string[]>([]);
+  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showCreateWorkoutDialog, setShowCreateWorkoutDialog] = useState(false);
   
-  // New exercise form state
-  const [newExercise, setNewExercise] = useState<{
-    name: string;
-    muscleGroup: Exercise['muscleGroup'] | '';
-    forceType: Exercise['forceType'] | '';
-    notes: string;
-  }>({
-    name: '',
-    muscleGroup: '',
-    forceType: '',
-    notes: ''
-  });
+  const { allExercises, addExercise, isAddingExercise } = useExercises();
 
-  // Load exercises from localStorage or use initial data
-  useEffect(() => {
-    const savedExercises = localStorage.getItem('exerciseLibrary');
-    if (savedExercises) {
-      setExercises(JSON.parse(savedExercises));
-    } else {
-      const exercisesWithFavorites = initialExercises.map(ex => ({ ...ex, isFavorite: false }));
-      setExercises(exercisesWithFavorites);
-    }
-  }, []);
-
-  // Save exercises to localStorage whenever exercises change
-  useEffect(() => {
-    if (exercises.length > 0) {
-      localStorage.setItem('exerciseLibrary', JSON.stringify(exercises));
-    }
-  }, [exercises]);
-
-  const filteredExercises = exercises.filter(exercise => {
+  const filteredExercises = allExercises.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMuscleGroup = muscleGroupFilter === 'all' || exercise.muscleGroup === muscleGroupFilter;
-    const matchesForceType = forceTypeFilter === 'all' || exercise.forceType === forceTypeFilter;
-    const matchesFavorites = !showFavoritesOnly || exercise.isFavorite;
+    const matchesMuscleGroup = selectedMuscleGroups.length === 0 || selectedMuscleGroups.includes(exercise.muscleGroup);
+    const matchesForceType = selectedForceTypes.length === 0 || selectedForceTypes.includes(exercise.forceType);
     
-    return matchesSearch && matchesMuscleGroup && matchesForceType && matchesFavorites;
+    return matchesSearch && matchesMuscleGroup && matchesForceType;
   });
 
-  const muscleGroups = Array.from(new Set(exercises.map(ex => ex.muscleGroup))).sort();
-  const forceTypes = Array.from(new Set(exercises.map(ex => ex.forceType))).sort();
-  const favoriteCount = exercises.filter(ex => ex.isFavorite).length;
-
-  const handleAddExercise = () => {
-    if (!newExercise.name.trim() || !newExercise.muscleGroup || !newExercise.forceType) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in exercise name, muscle group, and force type.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const exercise: Exercise = {
-      id: (Date.now()).toString(),
-      name: newExercise.name.trim(),
-      muscleGroup: newExercise.muscleGroup as Exercise['muscleGroup'],
-      forceType: newExercise.forceType as Exercise['forceType'],
-      notes: newExercise.notes.trim() || undefined,
-      isFavorite: false
-    };
-
-    setExercises([...exercises, exercise]);
-    setNewExercise({ name: '', muscleGroup: '', forceType: '', notes: '' });
-    setIsAddDialogOpen(false);
-    
-    toast({
-      title: "Exercise Added",
-      description: `${exercise.name} has been added to the exercise library.`,
-    });
-  };
-
-  const handleSelectExercise = (exerciseId: string) => {
-    const newSelected = new Set(selectedExercises);
-    if (newSelected.has(exerciseId)) {
-      newSelected.delete(exerciseId);
+  const handleExerciseToggle = (exercise: Exercise, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedExercises([...selectedExercises, exercise]);
     } else {
-      newSelected.add(exerciseId);
+      setSelectedExercises(selectedExercises.filter(e => e.id !== exercise.id));
     }
-    setSelectedExercises(newSelected);
   };
 
   const handleSelectAll = () => {
-    if (selectedExercises.size === filteredExercises.length) {
-      setSelectedExercises(new Set());
-    } else {
-      setSelectedExercises(new Set(filteredExercises.map(ex => ex.id)));
-    }
+    setSelectedExercises(filteredExercises);
   };
 
-  const handleToggleFavorite = (exerciseId: string) => {
-    setExercises(exercises.map(ex => 
-      ex.id === exerciseId ? { ...ex, isFavorite: !ex.isFavorite } : ex
-    ));
+  const handleClearSelection = () => {
+    setSelectedExercises([]);
   };
 
-  const handleEditExercise = (updatedExercise: Exercise) => {
-    setExercises(exercises.map(ex => 
-      ex.id === updatedExercise.id ? updatedExercise : ex
-    ));
+  const handleCreateWorkout = () => {
+    setShowCreateWorkoutDialog(true);
   };
 
-  const handleDeleteExercises = (exerciseIds: string[]) => {
-    setExercises(exercises.filter(ex => !exerciseIds.includes(ex.id)));
-    setSelectedExercises(new Set());
-  };
-
-  const handleBulkEdit = () => {
-    if (selectedExercises.size === 1) {
-      const exercise = exercises.find(ex => selectedExercises.has(ex.id));
-      if (exercise) {
-        setEditingExercise(exercise);
-      }
-    }
-  };
-
-  const handleBulkDelete = () => {
-    const exercisesToDelete = exercises.filter(ex => selectedExercises.has(ex.id));
-    setDeletingExercises(exercisesToDelete);
-  };
-
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setMuscleGroupFilter('all');
-    setForceTypeFilter('all');
-    setShowFavoritesOnly(false);
+  const handleAddExercise = (exerciseData: {
+    name: string;
+    forceType: string;
+    muscleGroup: string;
+    notes?: string;
+  }) => {
+    addExercise({
+      name: exerciseData.name,
+      force_type: exerciseData.forceType,
+      muscle_group: exerciseData.muscleGroup,
+      notes: exerciseData.notes,
+    });
   };
 
   return (
     <PageLayout>
       <div className="space-y-6">
-        <ExerciseLibraryHeader
-          favoriteCount={favoriteCount}
-          muscleGroups={muscleGroups}
-          forceTypes={forceTypes}
-          isAddDialogOpen={isAddDialogOpen}
-          setIsAddDialogOpen={setIsAddDialogOpen}
-          newExercise={newExercise}
-          setNewExercise={setNewExercise}
-          onAddExercise={handleAddExercise}
-        />
+        <div className="text-center">
+          <Dumbbell className="h-12 w-12 text-burnt-orange mx-auto mb-4" />
+          <h1 className="text-3xl font-bold mb-2">Exercise Library</h1>
+          <p className="text-muted-foreground">Browse and manage your exercise collection</p>
+        </div>
 
-        <BulkActionsBar
-          selectedCount={selectedExercises.size}
-          filteredCount={filteredExercises.length}
-          onSelectAll={handleSelectAll}
-          onBulkEdit={handleBulkEdit}
-          onBulkDelete={handleBulkDelete}
-        />
+        <div className="flex justify-between items-center">
+          <ExerciseLibraryHeader />
+          <Button onClick={() => setShowAddDialog(true)} disabled={isAddingExercise}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Exercise
+          </Button>
+        </div>
 
         <ExerciseFilters
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          muscleGroupFilter={muscleGroupFilter}
-          setMuscleGroupFilter={setMuscleGroupFilter}
-          forceTypeFilter={forceTypeFilter}
-          setForceTypeFilter={setForceTypeFilter}
-          showFavoritesOnly={showFavoritesOnly}
-          setShowFavoritesOnly={setShowFavoritesOnly}
-          muscleGroups={muscleGroups}
-          forceTypes={forceTypes}
+          onSearchChange={setSearchTerm}
+          selectedMuscleGroups={selectedMuscleGroups}
+          onMuscleGroupsChange={setSelectedMuscleGroups}
+          selectedForceTypes={selectedForceTypes}
+          onForceTypesChange={setSelectedForceTypes}
+          totalExercises={allExercises.length}
+          filteredCount={filteredExercises.length}
         />
+
+        {selectedExercises.length > 0 && (
+          <BulkActionsBar
+            selectedCount={selectedExercises.length}
+            onSelectAll={handleSelectAll}
+            onClearSelection={handleClearSelection}
+            onCreateWorkout={handleCreateWorkout}
+          />
+        )}
 
         <ExerciseGrid
           exercises={filteredExercises}
           selectedExercises={selectedExercises}
-          onSelectExercise={handleSelectExercise}
-          onToggleFavorite={handleToggleFavorite}
-          onEditExercise={setEditingExercise}
-          onDeleteExercise={(ex) => setDeletingExercises([ex])}
-          onClearFilters={handleClearFilters}
-          totalCount={exercises.length}
+          onExerciseToggle={handleExerciseToggle}
         />
 
-        <EditExerciseDialog
-          exercise={editingExercise}
-          isOpen={!!editingExercise}
-          onClose={() => setEditingExercise(null)}
-          onSave={handleEditExercise}
-          muscleGroups={muscleGroups}
-          forceTypes={forceTypes}
+        <AddExerciseDialog
+          open={showAddDialog}
+          onOpenChange={setShowAddDialog}
+          onAddExercise={handleAddExercise}
+          isLoading={isAddingExercise}
         />
 
-        <DeleteExerciseDialog
-          exercises={deletingExercises}
-          isOpen={deletingExercises.length > 0}
-          onClose={() => setDeletingExercises([])}
-          onConfirm={handleDeleteExercises}
+        <CreateWorkoutDialog
+          open={showCreateWorkoutDialog}
+          onOpenChange={setShowCreateWorkoutDialog}
+          selectedExercises={selectedExercises}
+          onClearSelection={handleClearSelection}
         />
       </div>
     </PageLayout>
