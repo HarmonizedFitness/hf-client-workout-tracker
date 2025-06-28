@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainer } from './useTrainer';
@@ -66,12 +65,30 @@ export const useSupabaseClients = () => {
       notes?: string;
       goals?: string;
     }) => {
-      console.log('addClientMutation called with data:', newClient);
-      console.log('Current trainer:', trainer);
+      console.log('🚀 Starting addClientMutation with data:', newClient);
+      console.log('🔑 Current trainer:', trainer);
+      
+      // Get current auth user
+      const { data: authUser, error: authError } = await supabase.auth.getUser();
+      console.log('🔐 Auth user:', authUser?.user?.id, 'Auth error:', authError);
       
       if (!trainer) {
-        console.error('No trainer found for client creation');
-        throw new Error('No trainer found - please make sure you are logged in');
+        const errorMsg = 'No trainer found - please make sure you are logged in';
+        console.error('❌', errorMsg);
+        throw new Error(errorMsg);
+      }
+      
+      if (!authUser?.user) {
+        const errorMsg = 'No authenticated user found';
+        console.error('❌', errorMsg);
+        throw new Error(errorMsg);
+      }
+      
+      // Verify trainer ownership
+      if (trainer.user_id !== authUser.user.id) {
+        const errorMsg = 'Trainer user_id does not match authenticated user';
+        console.error('❌', errorMsg, { trainerUserId: trainer.user_id, authUserId: authUser.user.id });
+        throw new Error(errorMsg);
       }
       
       const clientData = {
@@ -79,7 +96,25 @@ export const useSupabaseClients = () => {
         trainer_id: trainer.id,
       };
       
-      console.log('Inserting client data to Supabase:', clientData);
+      console.log('📦 Final client data for insertion:', clientData);
+      console.log('📊 Data types:', {
+        name: typeof clientData.name,
+        trainer_id: typeof clientData.trainer_id,
+        training_days_per_week: typeof clientData.training_days_per_week,
+        cost_per_session: typeof clientData.cost_per_session,
+      });
+      
+      // Test if we can query the clients table first
+      console.log('🧪 Testing clients table access...');
+      const { data: testData, error: testError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('trainer_id', trainer.id)
+        .limit(1);
+      
+      console.log('🧪 Test query result:', { testData, testError });
+      
+      console.log('💾 Attempting to insert client into Supabase...');
       
       const { data, error } = await supabase
         .from('clients')
@@ -87,18 +122,29 @@ export const useSupabaseClients = () => {
         .select()
         .single();
 
-      console.log('Supabase insert result:', { data, error });
+      console.log('💾 Supabase insert result:', { data, error });
+      console.log('💾 Insert error details:', error?.message, error?.details, error?.hint, error?.code);
 
       if (error) {
-        console.error('Supabase insert error:', error);
-        throw error;
+        console.error('🔥 Supabase insert error:', error);
+        // More detailed error information
+        if (error.code === 'PGRST301') {
+          console.error('🔥 Row Level Security policy violation');
+        }
+        throw new Error(`Database error: ${error.message} (Code: ${error.code})`);
       }
       
-      console.log('Successfully created client:', data);
+      if (!data) {
+        const errorMsg = 'No data returned from insert operation';
+        console.error('❌', errorMsg);
+        throw new Error(errorMsg);
+      }
+      
+      console.log('✅ Successfully created client:', data);
       return data;
     },
     onSuccess: (newClient) => {
-      console.log('Client creation successful, invalidating queries');
+      console.log('🎉 Client creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         title: "Client Added!",
@@ -106,7 +152,8 @@ export const useSupabaseClients = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Client creation error:', error);
+      console.error('💥 Client creation error:', error);
+      console.error('💥 Error stack:', error.stack);
       toast({
         title: "Error Adding Client",
         description: error.message || 'Failed to add client. Please try again.',

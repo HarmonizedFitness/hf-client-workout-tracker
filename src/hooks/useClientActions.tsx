@@ -15,7 +15,7 @@ export const useClientActions = () => {
   const { addClient, isAddingClient } = useSupabaseClients();
 
   const handleAddClient = () => {
-    console.log('handleAddClient called with:', {
+    console.log('🎯 handleAddClient called with:', {
       name: newClientName,
       email: newClientEmail,
       phone: newClientPhone,
@@ -25,10 +25,42 @@ export const useClientActions = () => {
       goals: newClientGoals,
     });
 
+    // Enhanced validation
     if (!newClientName.trim()) {
+      console.error('❌ Validation failed: Name is required');
       toast({
         title: "Name Required",
         description: "Please enter the client's name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newClientName.trim().length < 2) {
+      console.error('❌ Validation failed: Name too short');
+      toast({
+        title: "Invalid Name",
+        description: "Client name must be at least 2 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newClientTrainingDays < 1 || newClientTrainingDays > 7) {
+      console.error('❌ Validation failed: Invalid training days');
+      toast({
+        title: "Invalid Training Days",
+        description: "Training days must be between 1 and 7.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newClientCostPerSession < 0) {
+      console.error('❌ Validation failed: Invalid cost per session');
+      toast({
+        title: "Invalid Cost",
+        description: "Cost per session cannot be negative.",
         variant: "destructive",
       });
       return;
@@ -44,15 +76,20 @@ export const useClientActions = () => {
       goals: newClientGoals.trim() || undefined,
     };
 
-    console.log('Calling addClient with processed data:', clientData);
-    addClient(clientData);
+    console.log('✅ Validation passed, calling addClient with processed data:', clientData);
     
-    // Reset form
-    resetForm();
+    try {
+      addClient(clientData);
+      console.log('🚀 addClient called successfully, resetting form');
+      // Reset form immediately - the success handler will handle the toast
+      resetForm();
+    } catch (error) {
+      console.error('💥 Error calling addClient:', error);
+    }
   };
 
   const resetForm = () => {
-    console.log('Resetting client form');
+    console.log('🔄 Resetting client form');
     setNewClientName('');
     setNewClientEmail('');
     setNewClientPhone('');

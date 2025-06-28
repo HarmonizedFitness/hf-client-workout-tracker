@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AddClientFormProps {
   formState: {
@@ -49,9 +50,14 @@ const AddClientForm = ({ formState, onSubmit, onCancel, isLoading = false }: Add
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('AddClientForm: handleSubmit called');
+    console.log('📝 AddClientForm: handleSubmit called');
     onSubmit();
   };
+
+  const isFormValid = newClientName.trim().length >= 2 && 
+                     newClientTrainingDays >= 1 && 
+                     newClientTrainingDays <= 7 && 
+                     newClientCostPerSession >= 0;
 
   return (
     <Card className="border-dashed">
@@ -60,6 +66,15 @@ const AddClientForm = ({ formState, onSubmit, onCancel, isLoading = false }: Add
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isFormValid && newClientName.length > 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Please ensure all required fields are filled correctly.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="client-name">Name *</Label>
@@ -70,7 +85,11 @@ const AddClientForm = ({ formState, onSubmit, onCancel, isLoading = false }: Add
                 placeholder="Client's full name"
                 required
                 disabled={isLoading}
+                className={newClientName.length > 0 && newClientName.trim().length < 2 ? 'border-red-500' : ''}
               />
+              {newClientName.length > 0 && newClientName.trim().length < 2 && (
+                <p className="text-sm text-red-500 mt-1">Name must be at least 2 characters</p>
+              )}
             </div>
             <div>
               <Label htmlFor="client-email">Email (Optional)</Label>
@@ -104,7 +123,7 @@ const AddClientForm = ({ formState, onSubmit, onCancel, isLoading = false }: Add
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1, 2, 3, 4, 5].map(days => (
+                  {[1, 2, 3, 4, 5, 6, 7].map(days => (
                     <SelectItem key={days} value={days.toString()}>
                       {days} {days === 1 ? 'day' : 'days'} per week
                     </SelectItem>
@@ -149,7 +168,7 @@ const AddClientForm = ({ formState, onSubmit, onCancel, isLoading = false }: Add
           <div className="flex gap-2 pt-2">
             <Button 
               type="submit" 
-              disabled={isLoading || !newClientName.trim()}
+              disabled={isLoading || !isFormValid}
               className="bg-green-600 hover:bg-green-700"
             >
               {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
