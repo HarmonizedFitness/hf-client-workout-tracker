@@ -2,22 +2,20 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from 'lucide-react';
+import { Dumbbell } from 'lucide-react';
 
 interface BulkActionsBarProps {
   selectedCount: number;
-  filteredCount: number;
   onSelectAll: () => void;
-  onBulkEdit: () => void;
-  onBulkDelete: () => void;
+  onClearSelection: () => void;
+  onCreateWorkout: () => void;
 }
 
 const BulkActionsBar = ({
   selectedCount,
-  filteredCount,
   onSelectAll,
-  onBulkEdit,
-  onBulkDelete
+  onClearSelection,
+  onCreateWorkout
 }: BulkActionsBarProps) => {
   if (selectedCount === 0) return null;
 
@@ -34,30 +32,23 @@ const BulkActionsBar = ({
               size="sm"
               onClick={onSelectAll}
             >
-              {selectedCount === filteredCount ? 'Deselect All' : 'Select All'}
+              Select All
             </Button>
-          </div>
-          <div className="flex gap-2">
-            {selectedCount === 1 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onBulkEdit}
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-            )}
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={onBulkDelete}
-              className="text-destructive hover:text-destructive"
+              onClick={onClearSelection}
             >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Delete Selected
+              Clear Selection
             </Button>
           </div>
+          <Button
+            onClick={onCreateWorkout}
+            className="bg-burnt-orange hover:bg-burnt-orange/90"
+          >
+            <Dumbbell className="h-4 w-4 mr-2" />
+            Create Workout
+          </Button>
         </div>
       </CardContent>
     </Card>

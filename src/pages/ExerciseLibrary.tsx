@@ -1,9 +1,8 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, Dumbbell } from 'lucide-react';
-import { initialExercises } from '@/data/exerciseData';
 import { Exercise } from '@/types/exercise';
-import ExerciseLibraryHeader from '@/components/ExerciseLibraryHeader';
 import ExerciseFilters from '@/components/ExerciseFilters';
 import ExerciseGrid from '@/components/ExerciseGrid';
 import BulkActionsBar from '@/components/BulkActionsBar';
@@ -64,6 +63,9 @@ const ExerciseLibrary = () => {
     });
   };
 
+  // Create a Set of selected exercise IDs for ExerciseGrid
+  const selectedExerciseIds = new Set(selectedExercises.map(ex => ex.id));
+
   return (
     <PageLayout>
       <div className="space-y-6">
@@ -73,8 +75,7 @@ const ExerciseLibrary = () => {
           <p className="text-muted-foreground">Browse and manage your exercise collection</p>
         </div>
 
-        <div className="flex justify-between items-center">
-          <ExerciseLibraryHeader />
+        <div className="flex justify-end">
           <Button onClick={() => setShowAddDialog(true)} disabled={isAddingExercise}>
             <Plus className="h-4 w-4 mr-2" />
             Add Exercise
@@ -92,18 +93,16 @@ const ExerciseLibrary = () => {
           filteredCount={filteredExercises.length}
         />
 
-        {selectedExercises.length > 0 && (
-          <BulkActionsBar
-            selectedCount={selectedExercises.length}
-            onSelectAll={handleSelectAll}
-            onClearSelection={handleClearSelection}
-            onCreateWorkout={handleCreateWorkout}
-          />
-        )}
+        <BulkActionsBar
+          selectedCount={selectedExercises.length}
+          onSelectAll={handleSelectAll}
+          onClearSelection={handleClearSelection}
+          onCreateWorkout={handleCreateWorkout}
+        />
 
         <ExerciseGrid
           exercises={filteredExercises}
-          selectedExercises={selectedExercises}
+          selectedExercises={selectedExerciseIds}
           onExerciseToggle={handleExerciseToggle}
         />
 
