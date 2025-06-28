@@ -40,7 +40,7 @@ export const checkForNewPRs = (
     .filter(pr => pr.pr_type === 'single_weight')
     .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
 
-  console.log('Current max weight PR:', maxWeightPR, 'New weight (KG):', weightInKg);
+  console.log('Current max weight PR (KG):', maxWeightPR, 'New weight (KG):', weightInKg);
 
   if (weightInKg > maxWeightPR) {
     console.log('New single weight PR detected!');
@@ -61,7 +61,7 @@ export const checkForNewPRs = (
     .filter(pr => pr.pr_type === 'volume')
     .reduce((max, pr) => (pr.total_volume || 0) > max ? (pr.total_volume || 0) : max, 0);
 
-  console.log('Current max volume PR:', maxVolumePR, 'New volume (KG):', totalVolumeKg);
+  console.log('Current max volume PR (KG):', maxVolumePR, 'New volume (KG):', totalVolumeKg);
 
   if (totalVolumeKg > maxVolumePR) {
     console.log('New volume PR detected!');

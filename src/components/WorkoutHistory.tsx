@@ -1,12 +1,17 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Calendar, Clock, Award } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ChevronDown, Calendar, Clock, Award, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { SupabaseClient } from '@/hooks/useSupabaseClients';
 import { useWorkoutSessions } from '@/hooks/useWorkoutSessions';
 import { useExercises } from '@/hooks/useExercises';
+import { kgToLbs } from '@/utils/weightConversions';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WorkoutHistoryProps {
   client: SupabaseClient;
@@ -14,7 +19,8 @@ interface WorkoutHistoryProps {
 
 const WorkoutHistory = ({ client }: WorkoutHistoryProps) => {
   const [openSessions, setOpenSessions] = useState<Record<string, boolean>>({});
-  const { sessions, isLoading } = useWorkoutSessions(client.id);
+  const [deletingSession, setDeletingSession] = useState<string | null>(null);
+  const { sessions, isLoading, refetch } = useWorkoutSessions(client.id);
   const { allExercises } = useExercises();
 
   const toggleSession = (sessionId: string) => {
@@ -27,6 +33,35 @@ const WorkoutHistory = ({ client }: WorkoutHistoryProps) => {
   const getExerciseName = (exerciseId: string) => {
     const exercise = allExercises.find(ex => ex.id === exerciseId);
     return exercise?.name || 'Unknown Exercise';
+  };
+
+  const deleteWorkoutSession = async (sessionId: string) => {
+    try {
+      setDeletingSession(sessionId);
+      
+      const { error } = await supabase
+        .from('workout_sessions')
+        .delete()
+        .eq('id', sessionId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Workout Deleted",
+        description: "The workout session has been successfully deleted.",
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error deleting workout session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the workout session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingSession(null);
+    }
   };
 
   if (isLoading) {
@@ -120,6 +155,37 @@ const WorkoutHistory = ({ client }: WorkoutHistoryProps) => {
                           {prSets} PR{prSets > 1 ? 's' : ''}
                         </Badge>
                       )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={(e) => e.stopPropagation()}
+                            disabled={deletingSession === session.id}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Workout Session</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this workout session from {new Date(session.date).toLocaleDateString()}? 
+                              This will permanently remove all exercises and sets from this session. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteWorkoutSession(session.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete Workout
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                       <ChevronDown className="h-4 w-4" />
                     </div>
                   </div>
@@ -145,7 +211,7 @@ const WorkoutHistory = ({ client }: WorkoutHistoryProps) => {
                                 <div key={set.id} className="flex items-center justify-between text-sm">
                                   <span>Set {set.set_number}</span>
                                   <div className="flex items-center gap-2">
-                                    <span>{set.weight}kg × {set.reps}</span>
+                                    <span>{kgToLbs(set.weight)} lbs × {set.reps}</span>
                                     {set.is_pr && (
                                       <Badge variant="secondary" className="bg-yellow-50 text-yellow-800 text-xs">
                                         PR

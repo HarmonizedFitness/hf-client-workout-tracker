@@ -430,6 +430,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_workout_sets_session"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workout_sets_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false

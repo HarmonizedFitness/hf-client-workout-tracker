@@ -37,6 +37,7 @@ export const fetchPersonalRecords = async (trainerId: string, clientId?: string)
 export const savePR = async (prData: PRSaveData): Promise<PersonalRecord> => {
   console.log('Upserting PR:', prData);
   
+  // With the unique constraint, we can safely upsert and it will update existing records
   const { data, error } = await supabase
     .from('personal_records')
     .upsert({

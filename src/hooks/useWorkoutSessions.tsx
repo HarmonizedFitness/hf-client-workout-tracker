@@ -1,151 +1,54 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useTrainer } from './useTrainer';
-import { toast } from '@/hooks/use-toast';
 
-export interface WorkoutSession {
+interface WorkoutSession {
   id: string;
   client_id: string;
   trainer_id: string;
   date: string;
-  notes?: string;
-  duration_minutes?: number;
+  duration_minutes: number | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
+  workout_sets: {
+    id: string;
+    exercise_id: string;
+    weight: number;
+    reps: number;
+    set_number: number;
+    is_pr: boolean;
+  }[];
 }
 
-export interface WorkoutSet {
-  id: string;
-  session_id: string;
-  exercise_id: string; // Now TEXT instead of UUID
-  set_number: number;
-  reps: number;
-  weight: number;
-  is_pr: boolean;
-  created_at: string;
-}
-
-export interface SessionWithSets extends WorkoutSession {
-  workout_sets: WorkoutSet[];
-}
-
-export const useWorkoutSessions = (clientId?: string) => {
-  const { trainer } = useTrainer();
-  const queryClient = useQueryClient();
-
-  const { data: sessions = [], isLoading } = useQuery({
-    queryKey: ['workout-sessions', trainer?.id, clientId],
-    queryFn: async () => {
-      if (!trainer?.id) return [];
-      
-      let query = supabase
+export const useWorkoutSessions = (clientId: string) => {
+  const queryResult = useQuery({
+    queryKey: ['workout-sessions', clientId],
+    queryFn: async (): Promise<WorkoutSession[]> => {
+      const { data, error } = await supabase
         .from('workout_sessions')
         .select(`
           *,
-          workout_sets (*)
+          workout_sets (
+            id,
+            exercise_id,
+            weight,
+            reps,
+            set_number,
+            is_pr
+          )
         `)
-        .eq('trainer_id', trainer.id)
+        .eq('client_id', clientId)
         .order('date', { ascending: false });
 
-      if (clientId) {
-        query = query.eq('client_id', clientId);
-      }
-
-      const { data, error } = await query;
-      
       if (error) throw error;
-      return data as SessionWithSets[];
+      return data || [];
     },
-    enabled: !!trainer?.id,
-  });
-
-  const saveSessionMutation = useMutation({
-    mutationFn: async (sessionData: {
-      clientId: string;
-      date: string;
-      sets: Array<{
-        exerciseId: string; // This will now be a string like "1", "2", etc.
-        setNumber: number;
-        reps: number;
-        weight: number;
-        isPR: boolean;
-      }>;
-      notes?: string;
-      durationMinutes?: number;
-    }) => {
-      if (!trainer?.id) throw new Error('No trainer found');
-
-      console.log('Saving workout session with data:', sessionData);
-
-      // Create the workout session first
-      const { data: session, error: sessionError } = await supabase
-        .from('workout_sessions')
-        .insert({
-          client_id: sessionData.clientId,
-          trainer_id: trainer.id,
-          date: sessionData.date,
-          notes: sessionData.notes,
-          duration_minutes: sessionData.durationMinutes,
-        })
-        .select()
-        .single();
-
-      if (sessionError) {
-        console.error('Error creating session:', sessionError);
-        throw sessionError;
-      }
-
-      console.log('Session created successfully:', session);
-
-      // Create all workout sets
-      const setsToInsert = sessionData.sets.map(set => ({
-        session_id: session.id,
-        exercise_id: set.exerciseId, // Now correctly handles string exercise IDs
-        set_number: set.setNumber,
-        reps: set.reps,
-        weight: set.weight,
-        is_pr: set.isPR,
-      }));
-
-      console.log('Inserting workout sets:', setsToInsert);
-
-      const { error: setsError } = await supabase
-        .from('workout_sets')
-        .insert(setsToInsert);
-
-      if (setsError) {
-        console.error('Error creating workout sets:', setsError);
-        throw setsError;
-      }
-
-      console.log('Workout sets created successfully');
-
-      return session;
-    },
-    onSuccess: (session) => {
-      console.log('Session saved successfully, invalidating queries');
-      queryClient.invalidateQueries({ queryKey: ['workout-sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['personal-records'] });
-      toast({
-        title: "Session Saved!",
-        description: "Workout session has been successfully recorded.",
-      });
-    },
-    onError: (error) => {
-      console.error('Error saving session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save workout session. Please try again.",
-        variant: "destructive",
-      });
-    },
+    enabled: !!clientId,
   });
 
   return {
-    sessions,
-    isLoading,
-    saveSession: saveSessionMutation.mutateAsync,
-    isSavingSession: saveSessionMutation.isPending,
+    ...queryResult,
+    sessions: queryResult.data,
   };
 };

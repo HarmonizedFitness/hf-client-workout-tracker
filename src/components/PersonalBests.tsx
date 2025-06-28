@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, TrendingUp, Calendar, Weight, Activity } from 'lucide-react';
 import { SupabaseClient } from '@/hooks/useSupabaseClients';
 import { usePersonalRecords } from '@/hooks/usePersonalRecords';
-import { kgToLbs } from '@/utils/weightConversions';
 
 interface PersonalBestsProps {
   client: SupabaseClient;
@@ -56,7 +55,7 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
     );
   }
 
-  // Separate PRs by type
+  // Separate PRs by type - now there should be only one of each type per exercise due to the unique constraint
   const singleWeightPRs = personalRecords
     .filter(pr => pr.pr_type === 'single_weight')
     .sort((a, b) => b.weight - a.weight);
@@ -114,7 +113,7 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-yellow-50 text-yellow-800">
                           <TrendingUp className="h-3 w-3 mr-1" />
-                          {kgToLbs(pr.weight)} lbs × {pr.reps}
+                          {pr.weight} lbs × {pr.reps}
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
@@ -152,11 +151,11 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-blue-50 text-blue-800">
                           <Activity className="h-3 w-3 mr-1" />
-                          {kgToLbs(pr.total_volume || 0)} lbs total
+                          {pr.total_volume || 0} lbs total
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {kgToLbs(pr.weight)} lbs × {pr.reps} reps
+                        {pr.weight} lbs × {pr.reps} reps
                       </div>
                     </div>
                   </div>
