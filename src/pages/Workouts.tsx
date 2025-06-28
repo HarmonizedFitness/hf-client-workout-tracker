@@ -26,7 +26,7 @@ const Workouts = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
-  const [filterMuscleGroup, setFilterMuscleGroup] = useState('');
+  const [filterMuscleGroup, setFilterMuscleGroup] = useState('all');
 
   const getExerciseNames = (exerciseIds: string[]) => {
     return exerciseIds
@@ -39,7 +39,7 @@ const Workouts = () => {
   const filteredAndSortedTemplates = workoutTemplates
     .filter(template => 
       template.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterMuscleGroup === '' || template.muscle_group === filterMuscleGroup)
+      (filterMuscleGroup === 'all' || template.muscle_group === filterMuscleGroup)
     )
     .sort((a, b) => {
       switch (sortBy) {
@@ -54,7 +54,7 @@ const Workouts = () => {
     });
 
   const handleStartSession = (template: WorkoutTemplate, clientId?: string) => {
-    if (clientId) {
+    if (clientId && clientId !== 'none') {
       const client = activeClients.find(c => c.id === clientId);
       if (client) {
         setSelectedClient(client);
@@ -138,7 +138,7 @@ const Workouts = () => {
                     <SelectValue placeholder="All muscle groups" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All muscle groups</SelectItem>
+                    <SelectItem value="all">All muscle groups</SelectItem>
                     {muscleGroups.map(group => (
                       <SelectItem key={group} value={group}>
                         {group}
@@ -169,7 +169,7 @@ const Workouts = () => {
               <Dumbbell className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Workouts Found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm || filterMuscleGroup 
+                {searchTerm || filterMuscleGroup !== 'all'
                   ? "No workouts match your search criteria." 
                   : "You haven't created any workout templates yet."}
               </p>
@@ -232,7 +232,7 @@ const Workouts = () => {
                         </Button>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No client selected</SelectItem>
+                        <SelectItem value="none">No client selected</SelectItem>
                         {activeClients.map(client => (
                           <SelectItem key={client.id} value={client.id}>
                             {client.name}
