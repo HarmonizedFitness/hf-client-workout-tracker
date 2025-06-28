@@ -91,8 +91,40 @@ export const clientService = {
   },
 
   async updateClient({ id, updates }: ClientUpdateData): Promise<SupabaseClient> {
-    console.log('Updating client:', id, updates);
+    console.log('🔄 Starting updateClient for ID:', id);
+    console.log('📝 Updates to apply:', updates);
     
+    // Get current auth user for debugging
+    const { data: authUser, error: authError } = await supabase.auth.getUser();
+    console.log('🔐 Current auth user:', authUser?.user?.id);
+    
+    if (!authUser?.user) {
+      const errorMsg = 'No authenticated user found';
+      console.error('❌', errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    // First, let's check if we can read the current client
+    console.log('🔍 Checking current client data...');
+    const { data: currentClient, error: fetchError } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    console.log('🔍 Current client data:', currentClient);
+    console.log('🔍 Fetch error:', fetchError);
+    
+    if (fetchError) {
+      console.error('❌ Cannot fetch current client:', fetchError);
+      throw new Error(`Cannot access client: ${fetchError.message}`);
+    }
+    
+    if (!currentClient) {
+      throw new Error('Client not found or you do not have permission to edit this client');
+    }
+    
+    console.log('💾 Attempting to update client...');
     const { data, error } = await supabase
       .from('clients')
       .update(updates)
@@ -100,15 +132,41 @@ export const clientService = {
       .select()
       .single();
 
+    console.log('💾 Update result:', { data, error });
+    
     if (error) {
-      console.error('Client update error:', error);
-      throw error;
+      console.error('🔥 Client update error:', error);
+      console.error('🔥 Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      
+      // Provide more specific error messages
+      if (error.code === 'PGRST301') {
+        throw new Error('Permission denied: You can only edit your own clients');
+      } else if (error.code === '23505') {
+        throw new Error('A client with this information already exists');
+      } else if (error.code === '23514') {
+        throw new Error('Invalid data provided');
+      } else {
+        throw new Error(`Update failed: ${error.message}`);
+      }
     }
+    
+    if (!data) {
+      const errorMsg = 'No data returned from update operation';
+      console.error('❌', errorMsg);
+      throw new Error(errorMsg);
+    }
+    
+    console.log('✅ Successfully updated client:', data);
     return data;
   },
 
   async archiveClient(clientId: string): Promise<SupabaseClient> {
-    console.log('Archiving client:', clientId);
+    console.log('📦 Archiving client:', clientId);
     
     const { data, error } = await supabase
       .from('clients')

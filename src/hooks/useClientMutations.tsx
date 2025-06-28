@@ -34,17 +34,31 @@ export const useClientMutations = (trainerId?: string) => {
   });
 
   const updateClientMutation = useMutation({
-    mutationFn: clientService.updateClient,
-    onSuccess: () => {
+    mutationFn: async (updateData: ClientUpdateData) => {
+      console.log('🔄 Starting client update mutation with data:', updateData);
+      
+      try {
+        const result = await clientService.updateClient(updateData);
+        console.log('✅ Client update successful:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ Client update failed in mutation:', error);
+        throw error;
+      }
+    },
+    onSuccess: (updatedClient) => {
+      console.log('🎉 Client update mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['clients'] });
+      
+      // Don't show toast here - let the calling component handle it
+      // to avoid duplicate toasts
     },
     onError: (error: any) => {
-      console.error('Client update error:', error);
-      toast({
-        title: "Error Updating Client",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error('💥 Client update mutation error:', error);
+      
+      // Don't show toast here - let the calling component handle it
+      // to provide more specific error messages
+      throw error; // Re-throw so the calling component can catch it
     },
   });
 
@@ -70,7 +84,7 @@ export const useClientMutations = (trainerId?: string) => {
   return {
     addClient: addClientMutation.mutate,
     isAddingClient: addClientMutation.isPending,
-    updateClient: updateClientMutation.mutate,
+    updateClient: updateClientMutation.mutateAsync, // Use mutateAsync for better error handling
     archiveClient: archiveClientMutation.mutate,
   };
 };

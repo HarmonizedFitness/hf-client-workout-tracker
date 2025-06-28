@@ -23,7 +23,13 @@ const EditClientForm = ({
 }: EditClientFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with state:', formState);
     onSubmit();
+  };
+
+  const handleFieldChange = (field: keyof ClientEditFormState, value: string | number) => {
+    console.log(`Field ${field} changed to:`, value);
+    onUpdateField(field, value);
   };
 
   return (
@@ -39,10 +45,11 @@ const EditClientForm = ({
               <Input
                 id="edit-name"
                 value={formState.name}
-                onChange={(e) => onUpdateField('name', e.target.value)}
+                onChange={(e) => handleFieldChange('name', e.target.value)}
                 placeholder="Client name"
                 required
                 disabled={isLoading}
+                className={isLoading ? "opacity-50" : ""}
               />
             </div>
 
@@ -52,9 +59,10 @@ const EditClientForm = ({
                 id="edit-email"
                 type="email"
                 value={formState.email}
-                onChange={(e) => onUpdateField('email', e.target.value)}
+                onChange={(e) => handleFieldChange('email', e.target.value)}
                 placeholder="client@example.com"
                 disabled={isLoading}
+                className={isLoading ? "opacity-50" : ""}
               />
             </div>
 
@@ -63,9 +71,10 @@ const EditClientForm = ({
               <Input
                 id="edit-phone"
                 value={formState.phone}
-                onChange={(e) => onUpdateField('phone', e.target.value)}
+                onChange={(e) => handleFieldChange('phone', e.target.value)}
                 placeholder="(555) 123-4567"
                 disabled={isLoading}
+                className={isLoading ? "opacity-50" : ""}
               />
             </div>
 
@@ -77,8 +86,9 @@ const EditClientForm = ({
                 min="1"
                 max="7"
                 value={formState.training_days_per_week}
-                onChange={(e) => onUpdateField('training_days_per_week', parseInt(e.target.value) || 1)}
+                onChange={(e) => handleFieldChange('training_days_per_week', parseInt(e.target.value) || 1)}
                 disabled={isLoading}
+                className={isLoading ? "opacity-50" : ""}
               />
             </div>
 
@@ -90,8 +100,9 @@ const EditClientForm = ({
                 min="0"
                 step="0.01"
                 value={formState.cost_per_session}
-                onChange={(e) => onUpdateField('cost_per_session', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleFieldChange('cost_per_session', parseFloat(e.target.value) || 0)}
                 disabled={isLoading}
+                className={isLoading ? "opacity-50" : ""}
               />
             </div>
 
@@ -100,9 +111,10 @@ const EditClientForm = ({
               <Textarea
                 id="edit-goals"
                 value={formState.goals}
-                onChange={(e) => onUpdateField('goals', e.target.value)}
+                onChange={(e) => handleFieldChange('goals', e.target.value)}
                 placeholder="Client's fitness goals..."
                 disabled={isLoading}
+                className={`min-h-[100px] ${isLoading ? "opacity-50" : ""}`}
               />
             </div>
 
@@ -111,9 +123,10 @@ const EditClientForm = ({
               <Textarea
                 id="edit-notes"
                 value={formState.notes}
-                onChange={(e) => onUpdateField('notes', e.target.value)}
+                onChange={(e) => handleFieldChange('notes', e.target.value)}
                 placeholder="Additional notes about the client..."
                 disabled={isLoading}
+                className={`min-h-[100px] ${isLoading ? "opacity-50" : ""}`}
               />
             </div>
           </div>
@@ -126,7 +139,12 @@ const EditClientForm = ({
             >
               {isLoading ? 'Updating...' : 'Update Client'}
             </Button>
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel} 
+              disabled={isLoading}
+            >
               Cancel
             </Button>
           </div>

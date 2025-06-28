@@ -28,6 +28,7 @@ export const useClientEdit = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const initializeForm = (client: SupabaseClient) => {
+    console.log('Initializing form with client data:', client);
     setFormState({
       name: client.name,
       email: client.email || '',
@@ -40,6 +41,7 @@ export const useClientEdit = () => {
   };
 
   const updateFormField = (field: keyof ClientEditFormState, value: string | number) => {
+    console.log('Updating form field:', field, 'with value:', value);
     setFormState(prev => ({
       ...prev,
       [field]: value,
@@ -47,7 +49,8 @@ export const useClientEdit = () => {
   };
 
   const handleUpdateClient = async (clientId: string) => {
-    console.log('Updating client:', clientId, formState);
+    console.log('Starting client update for ID:', clientId);
+    console.log('Form state:', formState);
     
     if (!formState.name.trim()) {
       toast({
@@ -60,7 +63,9 @@ export const useClientEdit = () => {
 
     setIsUpdating(true);
     try {
-      await updateClient({
+      console.log('Calling updateClient mutation...');
+      
+      const updateData = {
         id: clientId,
         updates: {
           name: formState.name.trim(),
@@ -71,8 +76,13 @@ export const useClientEdit = () => {
           goals: formState.goals.trim() || null,
           notes: formState.notes.trim() || null,
         }
-      });
+      };
       
+      console.log('Update data being sent:', updateData);
+      
+      await updateClient(updateData);
+      
+      console.log('Client update successful');
       toast({
         title: "Client Updated!",
         description: `${formState.name} has been updated successfully.`,
@@ -81,6 +91,32 @@ export const useClientEdit = () => {
       return true;
     } catch (error) {
       console.error('Error updating client:', error);
+      
+      // More detailed error handling
+      let errorMessage = 'Failed to update client. Please try again.';
+      
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        // Check for specific database errors
+        if (error.message.includes('row-level security')) {
+          errorMessage = 'Permission denied. You can only edit your own clients.';
+        } else if (error.message.includes('violates')) {
+          errorMessage = 'Invalid data provided. Please check all fields.';
+        } else if (error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else {
+          errorMessage = `Update failed: ${error.message}`;
+        }
+      }
+      
+      toast({
+        title: "Update Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
       return false;
     } finally {
       setIsUpdating(false);
@@ -88,6 +124,7 @@ export const useClientEdit = () => {
   };
 
   const resetForm = () => {
+    console.log('Resetting form to initial state');
     setFormState({
       name: '',
       email: '',
