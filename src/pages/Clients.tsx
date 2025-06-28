@@ -4,19 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { mockClients, getActiveClients, getArchivedClients, archiveClient, restoreClient } from '@/data/clientData';
-import { Client } from '@/types/exercise';
-import { Users, Archive, RotateCcw, ChevronDown, ChevronRight, Mail, Phone, Calendar, DollarSign } from 'lucide-react';
+import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
+import { Users, Archive, RotateCcw, ChevronDown, ChevronRight, Mail, Phone, Calendar, Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import PageLayout from '@/components/PageLayout';
-import AddClientDialog from '@/components/AddClientDialog';
+import AddClientForm from '@/components/AddClientForm';
+import { useClientActions } from '@/hooks/useClientActions';
 
 const Clients = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [showAddForm, setShowAddForm] = useState(false);
 
-  const activeClients = getActiveClients().sort((a, b) => a.name.localeCompare(b.name));
-  const archivedClients = getArchivedClients().sort((a, b) => a.name.localeCompare(b.name));
+  const { activeClients, archivedClients, isLoading, archiveClient } = useSupabaseClients();
+  const { formState, handleAddClient, resetForm, isAddingClient } = useClientActions();
+
   const displayClients = showArchived ? archivedClients : activeClients;
 
   const toggleClientDetails = (clientId: string) => {
@@ -29,26 +31,53 @@ const Clients = () => {
     setExpandedClients(newExpanded);
   };
 
-  const handleArchiveClient = (client: Client) => {
+  const handleArchiveClient = (client: SupabaseClient) => {
     archiveClient(client.id);
+  };
+
+  const handleRestoreClient = (client: SupabaseClient) => {
+    // TODO: Implement restore functionality in useSupabaseClients
     toast({
-      title: "Client Archived",
-      description: `${client.name} has been archived and can be restored anytime.`,
+      title: "Feature Coming Soon",
+      description: "Client restore functionality will be available soon.",
     });
   };
 
-  const handleRestoreClient = (client: Client) => {
-    restoreClient(client.id);
-    toast({
-      title: "Client Restored",
-      description: `${client.name} has been restored to active status.`,
-    });
+  const handleAddClientSubmit = () => {
+    handleAddClient();
+    setShowAddForm(false);
   };
 
-  const handleClientAdded = (client: Client) => {
-    // The client is already added to mockClients in the dialog
-    // This callback could be used for additional actions if needed
+  const handleCancelAdd = () => {
+    resetForm();
+    setShowAddForm(false);
   };
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+            <Users className="h-7 w-7 sm:h-8 sm:w-8 text-burnt-orange" />
+            Client Management
+          </h1>
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">
+            Loading your clients...
+          </p>
+        </div>
+        <div className="animate-pulse space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -64,14 +93,32 @@ const Clients = () => {
             </p>
           </div>
           
-          {/* Prominent Add Client Button - Always Visible */}
           {!showArchived && (
             <div className="shrink-0">
-              <AddClientDialog onClientAdded={handleClientAdded} />
+              <Button 
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="bg-burnt-orange hover:bg-burnt-orange/90"
+                disabled={isAddingClient}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Client
+              </Button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Add Client Form */}
+      {showAddForm && (
+        <div className="mb-6">
+          <AddClientForm
+            formState={formState}
+            onSubmit={handleAddClientSubmit}
+            onCancel={handleCancelAdd}
+            isLoading={isAddingClient}
+          />
+        </div>
+      )}
 
       {/* Toggle between Active and Archived */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
@@ -91,13 +138,6 @@ const Clients = () => {
             Archived Clients ({archivedClients.length})
           </Button>
         </div>
-        
-        {/* Secondary Add Button for smaller screens when viewing active clients */}
-        {!showArchived && (
-          <div className="sm:hidden w-full">
-            <AddClientDialog onClientAdded={handleClientAdded} />
-          </div>
-        )}
       </div>
 
       {/* Client Cards */}
@@ -125,22 +165,21 @@ const Clients = () => {
                     <div className="min-w-0 flex-1">
                       <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-lg sm:text-xl">
                         <span className="truncate">{client.name}</span>
-                        {!client.isActive && (
+                        {!client.is_active && (
                           <Badge variant="secondary" className="bg-orange-100 text-orange-800 self-start sm:self-center">
                             Archived
                           </Badge>
                         )}
                       </CardTitle>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-sm text-muted-foreground">
-                        <span>{client.trainingDaysPerWeek} days/week</span>
-                        <span>{client.personalRecords.length} PRs</span>
-                        <span>${client.costPerSession}/session</span>
+                        <span>{client.training_days_per_week} days/week</span>
+                        <span>${client.cost_per_session}/session</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2 shrink-0">
-                    {client.isActive ? (
+                    {client.is_active ? (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="outline" size="sm" className="text-orange-600 hover:text-orange-700 h-9">
@@ -195,8 +234,20 @@ const Clients = () => {
                     )}
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm">Joined: {client.dateJoined}</span>
+                      <span className="text-sm">Joined: {client.date_joined}</span>
                     </div>
+                    {client.goals && (
+                      <div className="col-span-full">
+                        <h4 className="font-medium text-sm mb-1">Goals:</h4>
+                        <p className="text-sm text-muted-foreground">{client.goals}</p>
+                      </div>
+                    )}
+                    {client.notes && (
+                      <div className="col-span-full">
+                        <h4 className="font-medium text-sm mb-1">Notes:</h4>
+                        <p className="text-sm text-muted-foreground">{client.notes}</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               )}
@@ -213,7 +264,13 @@ const Clients = () => {
               {showArchived ? 'No archived clients found.' : 'No active clients found.'}
             </p>
             {!showArchived && (
-              <AddClientDialog onClientAdded={handleClientAdded} />
+              <Button 
+                onClick={() => setShowAddForm(true)}
+                className="bg-burnt-orange hover:bg-burnt-orange/90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Client
+              </Button>
             )}
           </CardContent>
         </Card>
