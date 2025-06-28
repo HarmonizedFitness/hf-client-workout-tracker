@@ -9,18 +9,18 @@ export const mapPersonalRecordsWithExercises = (
 ): PersonalRecordWithExercise[] => {
   return records.map(record => {
     // First check initial exercises
-    let exercise = initialExercises.find(ex => ex.id === record.exercise_id);
+    let exerciseName = initialExercises.find(ex => ex.id === record.exercise_id)?.name;
     
     // If not found, check custom exercises from Supabase
-    if (!exercise) {
-      exercise = customExercises.find(ex => ex.id === record.exercise_id);
+    if (!exerciseName) {
+      exerciseName = customExercises.find(ex => ex.id === record.exercise_id)?.name;
     }
     
     return {
       ...record,
       pr_type: record.pr_type || 'single_weight',
       total_volume: record.total_volume || null,
-      exercise_name: exercise?.name || 'Unknown Exercise'
+      exercise_name: exerciseName || 'Unknown Exercise'
     };
   });
 };
@@ -45,9 +45,7 @@ export const checkForNewPRs = (
   const newPRs: PRSaveData[] = [];
 
   // Check for Max Weight PR - find the absolute heaviest weight ever lifted
-  const currentMaxWeight = exercisePRs
-    .filter(pr => pr.pr_type === 'single_weight')
-    .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
+  const currentMaxWeight = exercisePRs.reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
 
   console.log('Current max weight PR (LBS):', currentMaxWeight, 'New weight (LBS):', weightInLbs);
 
