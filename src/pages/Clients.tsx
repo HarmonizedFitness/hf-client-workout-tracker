@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ const Clients = () => {
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingClient, setEditingClient] = useState<SupabaseClient | null>(null);
-  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { activeClients, archivedClients, isLoading, archiveClient } = useSupabaseClients();
   const { formState, handleAddClient, resetForm, isAddingClient } = useClientActions();
@@ -48,9 +46,13 @@ const Clients = () => {
   };
 
   const handleEditClient = (client: SupabaseClient) => {
-    console.log('Edit client clicked:', client);
+    console.log('🎯 Edit client clicked:', client);
     setEditingClient(client);
-    setShowEditDialog(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    console.log('🚪 Closing edit dialog');
+    setEditingClient(null);
   };
 
   const handleAddClientSubmit = () => {
@@ -130,11 +132,15 @@ const Clients = () => {
         </div>
       )}
 
-      {/* Edit Client Dialog */}
+      {/* Edit Client Dialog - Fixed state management */}
       <EditClientDialog
         client={editingClient}
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
+        open={!!editingClient}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseEditDialog();
+          }
+        }}
       />
 
       {/* Toggle between Active and Archived */}

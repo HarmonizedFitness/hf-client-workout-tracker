@@ -31,11 +31,8 @@ const EditClientDialog = ({ client, open, onOpenChange }: EditClientDialogProps)
       console.log('🎯 Dialog opened with client:', client.name);
       console.log('🔧 Initializing edit form...');
       initializeForm(client);
-    } else if (!open) {
-      console.log('❌ Dialog closed, resetting form');
-      resetForm();
     }
-  }, [client, open, initializeForm, resetForm]);
+  }, [client, open, initializeForm]);
 
   const handleSubmit = async () => {
     if (!client) {
@@ -53,6 +50,7 @@ const EditClientDialog = ({ client, open, onOpenChange }: EditClientDialogProps)
 
   const handleCancel = () => {
     console.log('🚫 Edit cancelled, closing dialog');
+    resetForm();
     onOpenChange(false);
   };
 
