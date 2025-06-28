@@ -29,12 +29,31 @@ const ExerciseLibrary = () => {
     return matchesSearch && matchesMuscleGroup && matchesForceType;
   });
 
-  const handleExerciseToggle = (exercise: Exercise, isSelected: boolean) => {
+  const handleSelectExercise = (exerciseId: string) => {
+    const exercise = allExercises.find(ex => ex.id === exerciseId);
+    if (!exercise) return;
+
+    const isSelected = selectedExercises.some(ex => ex.id === exerciseId);
     if (isSelected) {
-      setSelectedExercises([...selectedExercises, exercise]);
+      setSelectedExercises(selectedExercises.filter(e => e.id !== exerciseId));
     } else {
-      setSelectedExercises(selectedExercises.filter(e => e.id !== exercise.id));
+      setSelectedExercises([...selectedExercises, exercise]);
     }
+  };
+
+  const handleToggleFavorite = (exerciseId: string) => {
+    // TODO: Implement favorite toggle functionality
+    console.log('Toggle favorite for exercise:', exerciseId);
+  };
+
+  const handleEditExercise = (exercise: Exercise) => {
+    // TODO: Implement edit exercise functionality
+    console.log('Edit exercise:', exercise);
+  };
+
+  const handleDeleteExercise = (exercise: Exercise) => {
+    // TODO: Implement delete exercise functionality
+    console.log('Delete exercise:', exercise);
   };
 
   const handleSelectAll = () => {
@@ -43,6 +62,12 @@ const ExerciseLibrary = () => {
 
   const handleClearSelection = () => {
     setSelectedExercises([]);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedMuscleGroups([]);
+    setSelectedForceTypes([]);
   };
 
   const handleCreateWorkout = () => {
@@ -103,7 +128,12 @@ const ExerciseLibrary = () => {
         <ExerciseGrid
           exercises={filteredExercises}
           selectedExercises={selectedExerciseIds}
-          onExerciseToggle={handleExerciseToggle}
+          onSelectExercise={handleSelectExercise}
+          onToggleFavorite={handleToggleFavorite}
+          onEditExercise={handleEditExercise}
+          onDeleteExercise={handleDeleteExercise}
+          onClearFilters={handleClearFilters}
+          totalCount={allExercises.length}
         />
 
         <AddExerciseDialog
