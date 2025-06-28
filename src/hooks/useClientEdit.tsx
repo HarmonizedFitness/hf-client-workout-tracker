@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { SupabaseClient } from '@/types/client';
 import { useSupabaseClients } from './useSupabaseClients';
 import { toast } from '@/hooks/use-toast';
@@ -26,12 +26,15 @@ export const useClientEdit = () => {
     notes: '',
   });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [forceFieldsEnabled, setForceFieldsEnabled] = useState(false);
 
-  const initializeForm = (client: SupabaseClient) => {
-    console.log('🔄 Initializing form with client data:', client);
+  const initializeForm = useCallback((client: SupabaseClient) => {
+    console.log('🔄 Initializing form with client data:', client.name);
+    console.log('📊 Previous isUpdating state:', isUpdating);
     
-    // Reset loading state when initializing
+    // IMMEDIATELY reset loading state and force fields enabled
     setIsUpdating(false);
+    setForceFieldsEnabled(true);
     
     setFormState({
       name: client.name,
@@ -43,12 +46,17 @@ export const useClientEdit = () => {
       notes: client.notes || '',
     });
     
-    console.log('✅ Form initialized, isUpdating reset to false');
-  };
+    console.log('✅ Form initialized - isUpdating: false, forceFieldsEnabled: true');
+    
+    // Add a small delay to ensure React has time to update
+    setTimeout(() => {
+      console.log('🔧 Post-init state check - isUpdating:', false);
+    }, 100);
+  }, []); // Remove all dependencies to prevent recreating this function
 
   const updateFormField = (field: keyof ClientEditFormState, value: string | number) => {
     console.log('📝 Updating form field:', field, 'with value:', value);
-    console.log('📊 Current isUpdating state:', isUpdating);
+    console.log('📊 Current states - isUpdating:', isUpdating, 'forceFieldsEnabled:', forceFieldsEnabled);
     
     setFormState(prev => ({
       ...prev,
@@ -59,7 +67,6 @@ export const useClientEdit = () => {
   const handleUpdateClient = async (clientId: string) => {
     console.log('🚀 Starting client update for ID:', clientId);
     console.log('📋 Form state:', formState);
-    console.log('⏳ Setting isUpdating to true');
     
     if (!formState.name.trim()) {
       toast({
@@ -70,7 +77,10 @@ export const useClientEdit = () => {
       return false;
     }
 
+    console.log('⏳ Setting isUpdating to true for submission');
     setIsUpdating(true);
+    setForceFieldsEnabled(false); // Only disable during actual submission
+    
     try {
       console.log('📡 Calling updateClient mutation...');
       
@@ -125,14 +135,16 @@ export const useClientEdit = () => {
       
       return false;
     } finally {
-      console.log('🏁 Setting isUpdating to false');
+      console.log('🏁 Setting isUpdating to false (cleanup)');
       setIsUpdating(false);
+      setForceFieldsEnabled(true); // Re-enable fields after submission
     }
   };
 
   const resetForm = () => {
     console.log('🔄 Resetting form to initial state');
     setIsUpdating(false);
+    setForceFieldsEnabled(false);
     setFormState({
       name: '',
       email: '',
@@ -144,12 +156,17 @@ export const useClientEdit = () => {
     });
   };
 
+  // Calculate the actual loading state for form fields
+  const isFormDisabled = isUpdating && !forceFieldsEnabled;
+  
+  console.log('🎛️ Hook render - isUpdating:', isUpdating, 'forceFieldsEnabled:', forceFieldsEnabled, 'isFormDisabled:', isFormDisabled);
+
   return {
     formState,
     updateFormField,
     handleUpdateClient,
     resetForm,
     initializeForm,
-    isUpdating,
+    isUpdating: isFormDisabled, // Return the computed disabled state
   };
 };
