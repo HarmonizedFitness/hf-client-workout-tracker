@@ -36,17 +36,30 @@ export const useExercises = () => {
     enabled: !!trainer?.id,
   });
 
-  // Combine initial exercises with custom exercises
+  // Create a map of custom exercises by name for favorites lookup
+  const customExerciseMap = new Map(
+    customExercises.map(ex => [ex.name, ex])
+  );
+
+  // Combine initial exercises with custom exercises, merging favorites status
   const allExercises = [
-    ...initialExercises,
-    ...customExercises.map(ex => ({
-      id: ex.id,
-      name: ex.name,
-      forceType: ex.force_type as any,
-      muscleGroup: ex.muscle_group as any,
-      notes: ex.notes,
-      isFavorite: ex.is_favorite,
-    }))
+    ...initialExercises.map(exercise => {
+      const customVersion = customExerciseMap.get(exercise.name);
+      return {
+        ...exercise,
+        isFavorite: customVersion?.is_favorite || false,
+      };
+    }),
+    ...customExercises
+      .filter(ex => !initialExercises.some(initial => initial.name === ex.name))
+      .map(ex => ({
+        id: ex.id,
+        name: ex.name,
+        forceType: ex.force_type as any,
+        muscleGroup: ex.muscle_group as any,
+        notes: ex.notes,
+        isFavorite: ex.is_favorite,
+      }))
   ];
 
   const addExerciseMutation = useMutation({

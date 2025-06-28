@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, Dumbbell } from 'lucide-react';
@@ -20,6 +19,7 @@ const ExerciseLibrary = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
   const [selectedForceTypes, setSelectedForceTypes] = useState<string[]>([]);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -44,8 +44,9 @@ const ExerciseLibrary = () => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMuscleGroup = selectedMuscleGroups.length === 0 || selectedMuscleGroups.includes(exercise.muscleGroup);
     const matchesForceType = selectedForceTypes.length === 0 || selectedForceTypes.includes(exercise.forceType);
+    const matchesFavorites = !showFavorites || exercise.isFavorite;
     
-    return matchesSearch && matchesMuscleGroup && matchesForceType;
+    return matchesSearch && matchesMuscleGroup && matchesForceType && matchesFavorites;
   });
 
   const handleSelectExercise = (exerciseId: string) => {
@@ -86,6 +87,7 @@ const ExerciseLibrary = () => {
     setSearchTerm('');
     setSelectedMuscleGroups([]);
     setSelectedForceTypes([]);
+    setShowFavorites(false);
   };
 
   const handleCreateWorkout = () => {
@@ -152,6 +154,8 @@ const ExerciseLibrary = () => {
           onMuscleGroupsChange={setSelectedMuscleGroups}
           selectedForceTypes={selectedForceTypes}
           onForceTypesChange={setSelectedForceTypes}
+          showFavorites={showFavorites}
+          onShowFavoritesChange={setShowFavorites}
           totalExercises={allExercises.length}
           filteredCount={filteredExercises.length}
         />

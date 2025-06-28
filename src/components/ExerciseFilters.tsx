@@ -1,8 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Star } from 'lucide-react';
 
@@ -13,6 +12,8 @@ interface ExerciseFiltersProps {
   onMuscleGroupsChange: (groups: string[]) => void;
   selectedForceTypes: string[];
   onForceTypesChange: (types: string[]) => void;
+  showFavorites: boolean;
+  onShowFavoritesChange: (show: boolean) => void;
   totalExercises: number;
   filteredCount: number;
 }
@@ -27,6 +28,8 @@ const ExerciseFilters = ({
   onMuscleGroupsChange,
   selectedForceTypes,
   onForceTypesChange,
+  showFavorites,
+  onShowFavoritesChange,
   totalExercises,
   filteredCount
 }: ExerciseFiltersProps) => {
@@ -63,6 +66,12 @@ const ExerciseFilters = ({
           Showing {filteredCount} of {totalExercises} exercises
         </div>
         <div className="flex gap-2">
+          {showFavorites && (
+            <Badge variant="default" className="text-xs bg-yellow-500 text-white">
+              <Star className="h-3 w-3 mr-1 fill-current" />
+              Favorites
+            </Badge>
+          )}
           {selectedMuscleGroups.map(group => (
             <Badge key={group} variant="secondary" className="text-xs">
               {group}
@@ -76,7 +85,7 @@ const ExerciseFilters = ({
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
@@ -86,6 +95,15 @@ const ExerciseFilters = ({
             className="pl-10"
           />
         </div>
+        
+        <Button
+          onClick={() => onShowFavoritesChange(!showFavorites)}
+          variant={showFavorites ? "default" : "outline"}
+          className={`flex items-center gap-2 ${showFavorites ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
+        >
+          <Star className={`h-4 w-4 ${showFavorites ? 'fill-current' : ''}`} />
+          Favorites
+        </Button>
         
         <Select value={selectedMuscleGroups.length === 1 ? selectedMuscleGroups[0] : 'all'} onValueChange={handleMuscleGroupChange}>
           <SelectTrigger>
