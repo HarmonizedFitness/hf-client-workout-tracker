@@ -1,0 +1,32 @@
+
+import { Exercise } from '@/types/exercise';
+
+export const backExercises: Exercise[] = [
+  { id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', name: 'Barbell Shrug', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'b2c3d4e5-f6g7-8901-bcde-f23456789012', name: 'Cable Ball Lat Pulldown', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'c3d4e5f6-g7h8-9012-cdef-345678901234', name: 'Cable Lat Pull Over', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'd4e5f6g7-h8i9-0123-def0-456789012345', name: 'Cable Rows Close Grip', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'e5f6g7h8-i9j0-1234-ef01-567890123456', name: 'Cable Rows Neutral Grip', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'f6g7h8i9-j0k1-2345-f012-678901234567', name: 'Cable Rows Wide Grip', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'g7h8i9j0-k1l2-3456-0123-789012345678', name: 'Chin Ups', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'h8i9j0k1-l2m3-4567-1234-890123456789', name: 'Close Grip Lat Pulldown', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'i9j0k1l2-m3n4-5678-2345-901234567890', name: 'Closed Grip Pull Ups', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'j0k1l2m3-n4o5-6789-3456-012345678901', name: 'Dumbbell One Arm Row', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'k1l2m3n4-o5p6-7890-4567-123456789012', name: 'Dumbbell Shrug', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'l2m3n4o5-p6q7-8901-5678-234567890123', name: 'Face Pulls', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'm3n4o5p6-q7r8-9012-6789-345678901234', name: 'Hyperextensions - Back Extensions', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'n4o5p6q7-r8s9-0123-789a-456789012345', name: 'Lat Pull Down Close Grip', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'o5p6q7r8-s9t0-1234-89ab-567890123456', name: 'Lat Pull Down Neutral Grip', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'p6q7r8s9-t0u1-2345-9abc-678901234567', name: 'Lat Pull Down Wide Grip', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'q7r8s9t0-u1v2-3456-abcd-789012345678', name: 'Machine Assisted Chin Up', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'r8s9t0u1-v2w3-4567-bcde-890123456789', name: 'Machine Assisted Pull Up', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 's9t0u1v2-w3x4-5678-cdef-901234567890', name: 'Pull Ups', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 't0u1v2w3-x4y5-6789-def0-012345678901', name: 'Reverse Fly (Cable)', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'u1v2w3x4-y5z6-7890-ef01-123456789012', name: 'Seated Machine Row', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'v2w3x4y5-z6a7-8901-f012-234567890123', name: 'Smith Machine Row', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'w3x4y5z6-a7b8-9012-0123-345678901234', name: 'Shrugs (Barbell)', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'x4y5z6a7-b8c9-0123-1234-456789012345', name: 'Single-Arm Cable Row', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'y5z6a7b8-c9d0-1234-2345-567890123456', name: 'T Bar Row', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'z6a7b8c9-d0e1-2345-3456-678901234567', name: 'Cable Bent Lat Pulldown', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+  { id: 'a7b8c9d0-e1f2-3456-4567-789012345678', name: 'Bent Over Barbell Row', forceType: 'Pull', muscleGroup: 'Back', isFavorite: false },
+];

@@ -1,9 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainer } from './useTrainer';
 import { toast } from '@/hooks/use-toast';
-import { initialExercises } from '@/data/exerciseData';
+import { initialExercises } from '@/data/exercises';
 
 export interface SupabaseExercise {
   id: string;
