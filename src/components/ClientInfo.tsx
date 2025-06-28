@@ -1,8 +1,8 @@
-
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { UserCheck, Archive } from 'lucide-react';
-import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
+import { SupabaseClient } from '@/types/client';
+import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 
 interface ClientInfoProps {
   selectedClient: SupabaseClient | null;

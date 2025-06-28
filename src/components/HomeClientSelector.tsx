@@ -1,7 +1,8 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
+import { SupabaseClient } from '@/types/client';
+import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { UserCheck } from 'lucide-react';
 
 interface HomeClientSelectorProps {

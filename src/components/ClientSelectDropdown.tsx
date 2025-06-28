@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, RotateCcw } from 'lucide-react';
-import { SupabaseClient } from '@/hooks/useSupabaseClients';
+import { SupabaseClient } from '@/types/client';
 import { toast } from '@/hooks/use-toast';
 
 interface ClientSelectDropdownProps {

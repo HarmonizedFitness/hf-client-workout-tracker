@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import { useSupabaseClients, SupabaseClient } from './useSupabaseClients';
+import { SupabaseClient } from '@/types/client';
+import { useSupabaseClients } from './useSupabaseClients';
 import { toast } from '@/hooks/use-toast';
 
 export interface ClientEditFormState {

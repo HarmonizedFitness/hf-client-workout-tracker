@@ -1,5 +1,5 @@
 
-import { SupabaseClient } from '@/hooks/useSupabaseClients';
+import { SupabaseClient } from '@/types/client';
 import { Client } from '@/types/exercise';
 
 // Helper function to convert SupabaseClient to legacy Client format

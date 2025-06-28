@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SupabaseClient } from '@/hooks/useSupabaseClients';
+import { SupabaseClient } from '@/types/client';
 import { useClientEdit } from '@/hooks/useClientEdit';
 import { useEffect } from 'react';
 import EditClientForm from './EditClientForm';
