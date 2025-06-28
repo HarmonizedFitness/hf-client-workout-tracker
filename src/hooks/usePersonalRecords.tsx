@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainer } from './useTrainer';
 import { toast } from '@/hooks/use-toast';
+import { initialExercises } from '@/data/exerciseData';
 
 export interface PersonalRecord {
   id: string;
@@ -33,10 +34,7 @@ export const usePersonalRecords = (clientId?: string) => {
       
       let query = supabase
         .from('personal_records')
-        .select(`
-          *,
-          exercises (name)
-        `)
+        .select('*')
         .order('date', { ascending: false });
 
       if (clientId) {
@@ -58,12 +56,16 @@ export const usePersonalRecords = (clientId?: string) => {
       
       if (error) throw error;
       
-      return (data || []).map(record => ({
-        ...record,
-        pr_type: record.pr_type || 'single_weight',
-        total_volume: record.total_volume || null,
-        exercise_name: record.exercises?.name || 'Unknown Exercise'
-      })) as PersonalRecordWithExercise[];
+      // Map exercise IDs to names using the exercise data
+      return (data || []).map(record => {
+        const exercise = initialExercises.find(ex => ex.id === record.exercise_id);
+        return {
+          ...record,
+          pr_type: record.pr_type || 'single_weight',
+          total_volume: record.total_volume || null,
+          exercise_name: exercise?.name || 'Unknown Exercise'
+        };
+      }) as PersonalRecordWithExercise[];
     },
     enabled: !!trainer?.id,
   });
