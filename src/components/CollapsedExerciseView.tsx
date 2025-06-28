@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Edit, Trophy } from 'lucide-react';
-import { kgToLbs } from '@/utils/weightConversions';
+import { formatWeight } from '@/utils/weightConversions';
 
 interface CollapsedExerciseViewProps {
   exerciseName: string;
@@ -36,7 +36,7 @@ const CollapsedExerciseView = ({
             {currentPR && (
               <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 ml-2">
                 <Trophy className="h-3 w-3 mr-1" />
-                PR: {kgToLbs(currentPR)} lbs
+                PR: {formatWeight(currentPR)}
               </Badge>
             )}
           </div>

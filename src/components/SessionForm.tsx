@@ -6,7 +6,6 @@ import ExerciseSelector from './ExerciseSelector';
 import SessionSummary from './SessionSummary';
 import SessionNotes from './SessionNotes';
 import SessionEmptyState from './SessionEmptyState';
-import { kgToLbs } from '@/utils/weightConversions';
 import { useSessionState } from '@/hooks/useSessionState';
 import { useSessionHandlers } from '@/hooks/useSessionHandlers';
 
