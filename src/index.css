@@ -148,3 +148,40 @@
 .dark .bg-yellow-50 {
   background-color: hsl(25, 95%, 53%, 0.05);
 }
+
+/* Mobile-optimized touch targets and interactions */
+@media (max-width: 1024px) {
+  /* Ensure minimum touch target size of 44px */
+  button:not(.no-touch-target) {
+    min-height: 44px;
+  }
+  
+  /* Larger form controls on mobile */
+  input, select, textarea {
+    min-height: 44px;
+  }
+  
+  /* Better spacing for mobile interactions */
+  .command-item {
+    min-height: 48px;
+    padding: 12px 16px;
+  }
+  
+  /* Improved popover sizing for tablets */
+  [data-radix-popper-content-wrapper] {
+    max-width: calc(100vw - 32px);
+  }
+}
+
+/* iPad specific optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Command dialog sizing for tablet */
+  .command-dialog {
+    width: min(500px, 90vw);
+  }
+  
+  /* Better modal sizing for iPad */
+  [role="dialog"] {
+    max-width: min(600px, 95vw);
+  }
+}

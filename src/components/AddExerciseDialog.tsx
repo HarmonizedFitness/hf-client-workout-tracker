@@ -43,77 +43,83 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
     setSelectedMuscleGroup('');
     setSelectedForceType('');
     setNotes('');
-    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Exercise</DialogTitle>
+          <DialogTitle className="text-lg">Add New Exercise</DialogTitle>
           <DialogDescription>
             Create a custom exercise for your library
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
-            <Label htmlFor="exercise-name">Exercise Name</Label>
+            <Label htmlFor="exercise-name" className="text-base">Exercise Name</Label>
             <Input
               id="exercise-name"
               value={exerciseName}
               onChange={(e) => setExerciseName(e.target.value)}
               placeholder="Enter exercise name..."
+              className="h-12 mt-2"
             />
           </div>
           
           <div>
-            <Label htmlFor="muscle-group">Muscle Group</Label>
+            <Label htmlFor="muscle-group" className="text-base">Muscle Group</Label>
             <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
-              <SelectTrigger>
+              <SelectTrigger className="h-12 mt-2">
                 <SelectValue placeholder="Select muscle group..." />
               </SelectTrigger>
               <SelectContent>
                 {muscleGroups.map(group => (
-                  <SelectItem key={group} value={group}>{group}</SelectItem>
+                  <SelectItem key={group} value={group} className="py-3">
+                    {group}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="force-type">Force Type</Label>
+            <Label htmlFor="force-type" className="text-base">Force Type</Label>
             <Select value={selectedForceType} onValueChange={setSelectedForceType}>
-              <SelectTrigger>
+              <SelectTrigger className="h-12 mt-2">
                 <SelectValue placeholder="Select force type..." />
               </SelectTrigger>
               <SelectContent>
                 {forceTypes.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                  <SelectItem key={type} value={type} className="py-3">
+                    {type}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes" className="text-base">Notes (Optional)</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add any notes about this exercise..."
               rows={3}
+              className="mt-2"
             />
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-12">
             Cancel
           </Button>
           <Button 
             onClick={handleSubmit} 
             disabled={!exerciseName.trim() || !selectedMuscleGroup || !selectedForceType || isLoading}
+            className="h-12"
           >
             {isLoading ? "Adding..." : "Add Exercise"}
           </Button>
