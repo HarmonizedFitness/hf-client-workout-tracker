@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Trophy, Users, X } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trophy, Users, X, Calendar } from 'lucide-react';
 import { useClient } from '@/context/ClientContext';
 import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
 import PageLayout from '@/components/PageLayout';
 import PersonalBests from '@/components/PersonalBests';
+import WorkoutHistory from '@/components/WorkoutHistory';
 
 const Records = () => {
   const { selectedClient: globalSelectedClient, setSelectedClient: setGlobalSelectedClient, clearSelectedClient } = useClient();
@@ -94,7 +96,7 @@ const Records = () => {
       <div className="space-y-6">
         <div className="text-center">
           <Trophy className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold mb-2">Personal Records</h1>
+          <h1 className="text-3xl font-bold mb-2">Records & History</h1>
           <p className="text-muted-foreground">Viewing records for {selectedClient.name}</p>
         </div>
 
@@ -136,7 +138,26 @@ const Records = () => {
           </CardContent>
         </Card>
 
-        <PersonalBests client={selectedClient} />
+        <Tabs defaultValue="personal-records" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="personal-records" className="flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              Personal Records
+            </TabsTrigger>
+            <TabsTrigger value="workout-history" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Workout History
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="personal-records" className="mt-6">
+            <PersonalBests client={selectedClient} />
+          </TabsContent>
+          
+          <TabsContent value="workout-history" className="mt-6">
+            <WorkoutHistory client={selectedClient} />
+          </TabsContent>
+        </Tabs>
       </div>
     </PageLayout>
   );

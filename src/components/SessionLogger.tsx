@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { WorkoutSet, WorkoutSession, Client, PersonalRecord } from '@/types/exercise';
+import { Client } from '@/types/exercise';
 import IndividualSetEntry from './IndividualSetEntry';
 import ExerciseSelector from './ExerciseSelector';
 import SessionSummary from './SessionSummary';
@@ -9,6 +9,8 @@ import SessionNotes from './SessionNotes';
 import SessionEmptyState from './SessionEmptyState';
 import { toast } from '@/hooks/use-toast';
 import { useExercises } from '@/hooks/useExercises';
+import { useWorkoutSessions } from '@/hooks/useWorkoutSessions';
+import { usePersonalRecords } from '@/hooks/usePersonalRecords';
 
 interface SessionLoggerProps {
   client: Client;
@@ -32,6 +34,8 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
   const [exerciseEntries, setExerciseEntries] = useState<ExerciseEntry[]>([]);
   const [sessionNotes, setSessionNotes] = useState('');
   const { allExercises } = useExercises();
+  const { saveSession, isSavingSession } = useWorkoutSessions();
+  const { personalRecords, checkAndSavePRs } = usePersonalRecords(client.id);
 
   // Initialize with pre-selected exercises
   useEffect(() => {
@@ -50,8 +54,11 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
   }, [preSelectedExercises]);
 
   const getCurrentPR = (exerciseId: string): number | undefined => {
-    const pr = client.personalRecords.find(pr => pr.exerciseId === exerciseId);
-    return pr?.weight;
+    const maxWeightPR = personalRecords
+      .filter(pr => pr.exercise_id === exerciseId && pr.pr_type === 'single_weight')
+      .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
+    
+    return maxWeightPR > 0 ? maxWeightPR : undefined;
   };
 
   const addExerciseToSession = (exerciseId: string) => {
@@ -89,64 +96,49 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
     });
   };
 
-  const checkForPR = (exerciseId: string, newWeight: number): boolean => {
-    const existingPR = client.personalRecords.find(pr => pr.exerciseId === exerciseId);
-    return !existingPR || newWeight > existingPR.weight;
-  };
+  const saveSession = async () => {
+    const completedSets: Array<{
+      exerciseId: string;
+      setNumber: number;
+      reps: number;
+      weight: number;
+      isPR: boolean;
+    }> = [];
 
-  const updatePersonalRecords = (sets: WorkoutSet[]) => {
-    sets.forEach(set => {
-      if (set.isPB) {
-        const exercise = allExercises.find(ex => ex.id === set.exerciseId);
-        if (exercise) {
-          const newPR: PersonalRecord = {
-            exerciseId: set.exerciseId,
-            exerciseName: exercise.name,
-            weight: set.weight,
-            date: set.date,
-            setNumber: set.setNumber,
-            reps: set.reps,
-          };
-
-          const existingIndex = client.personalRecords.findIndex(pr => pr.exerciseId === set.exerciseId);
-          if (existingIndex >= 0) {
-            client.personalRecords[existingIndex] = newPR;
-          } else {
-            client.personalRecords.push(newPR);
-          }
-        }
-      }
-    });
-  };
-
-  const saveSession = () => {
-    const allSets: WorkoutSet[] = [];
     let totalPRs = 0;
+    const today = new Date().toISOString().split('T')[0];
 
-    exerciseEntries.forEach(entry => {
-      entry.sets.forEach(set => {
+    // Process all sets and check for PRs
+    for (const entry of exerciseEntries) {
+      for (const set of entry.sets) {
         if (set.reps && set.weight) {
-          const weightNum = parseFloat(set.weight);
-          const isPR = checkForPR(entry.exerciseId, weightNum);
+          const reps = parseInt(set.reps);
+          const weight = parseFloat(set.weight);
           
-          if (isPR) totalPRs++;
+          // Check if this is a PR
+          const hasPR = await checkAndSavePRs(
+            client.id,
+            entry.exerciseId,
+            weight,
+            reps,
+            set.setNumber,
+            today
+          );
+          
+          if (hasPR) totalPRs++;
 
-          const workoutSet: WorkoutSet = {
-            id: `${Date.now()}-${entry.exerciseId}-${set.setNumber}`,
+          completedSets.push({
             exerciseId: entry.exerciseId,
             setNumber: set.setNumber,
-            reps: parseInt(set.reps),
-            weight: weightNum,
-            date: new Date().toISOString().split('T')[0],
-            isPB: isPR,
-          };
-          
-          allSets.push(workoutSet);
+            reps,
+            weight,
+            isPR: hasPR,
+          });
         }
-      });
-    });
+      }
+    }
 
-    if (allSets.length === 0) {
+    if (completedSets.length === 0) {
       toast({
         title: "No Sets to Save",
         description: "Complete at least one set before saving your session.",
@@ -155,24 +147,22 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
       return;
     }
 
-    const newSession: WorkoutSession = {
-      id: Date.now().toString(),
+    // Save the session with all sets
+    saveSession({
       clientId: client.id,
-      date: new Date().toISOString().split('T')[0],
-      sets: allSets,
+      date: today,
+      sets: completedSets,
       notes: sessionNotes.trim() || undefined,
-    };
-
-    updatePersonalRecords(allSets);
-    client.workoutHistory.push(newSession);
-
-    toast({
-      title: "Session Saved!",
-      description: `Saved ${allSets.length} sets for ${client.name}${totalPRs > 0 ? ` with ${totalPRs} new PR${totalPRs > 1 ? 's' : ''}!` : '.'}`,
     });
 
+    // Clear the form after successful save
     setExerciseEntries([]);
     setSessionNotes('');
+
+    toast({
+      title: "Session Saved!",  
+      description: `Saved ${completedSets.length} sets for ${client.name}${totalPRs > 0 ? ` with ${totalPRs} new PR${totalPRs > 1 ? 's' : ''}!` : '.'}`,
+    });
   };
 
   const getExercise = (exerciseId: string) => {
@@ -209,6 +199,7 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
           totalCompletedSets={getTotalCompletedSets()}
           totalPotentialPRs={getTotalPotentialPRs()}
           onSaveSession={saveSession}
+          isLoading={isSavingSession}
         />
       )}
 
