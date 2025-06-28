@@ -445,6 +445,7 @@ export type Database = {
           exercise_ids: string[]
           id: string
           is_favorite: boolean | null
+          muscle_group: string | null
           name: string
           trainer_id: string
           updated_at: string | null
@@ -455,6 +456,7 @@ export type Database = {
           exercise_ids: string[]
           id?: string
           is_favorite?: boolean | null
+          muscle_group?: string | null
           name: string
           trainer_id: string
           updated_at?: string | null
@@ -465,6 +467,7 @@ export type Database = {
           exercise_ids?: string[]
           id?: string
           is_favorite?: boolean | null
+          muscle_group?: string | null
           name?: string
           trainer_id?: string
           updated_at?: string | null

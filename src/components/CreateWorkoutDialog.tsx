@@ -12,6 +12,7 @@ import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { useClient } from '@/context/ClientContext';
 import { useNavigate } from 'react-router-dom';
 import { Exercise } from '@/types/exercise';
+import { toast } from '@/hooks/use-toast';
 
 interface CreateWorkoutDialogProps {
   open: boolean;
@@ -20,9 +21,25 @@ interface CreateWorkoutDialogProps {
   onClearSelection: () => void;
 }
 
+const muscleGroups = [
+  'Full Body',
+  'Upper Body',
+  'Lower Body',
+  'Push',
+  'Pull',
+  'Legs',
+  'Back',
+  'Chest',
+  'Shoulders',
+  'Arms',
+  'Core',
+  'Cardio'
+];
+
 const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSelection }: CreateWorkoutDialogProps) => {
   const [workoutName, setWorkoutName] = useState('');
   const [workoutDescription, setWorkoutDescription] = useState('');
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
   const [selectedClientId, setSelectedClientId] = useState('');
   const { createTemplate, isCreatingTemplate } = useWorkoutTemplates();
   const { activeClients } = useSupabaseClients();
@@ -30,32 +47,59 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
   const navigate = useNavigate();
 
   const handleCreateWorkout = async () => {
-    if (!workoutName.trim()) return;
+    if (!workoutName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a workout name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedMuscleGroup) {
+      toast({
+        title: "Error", 
+        description: "Please select a muscle group category.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const exerciseIds = selectedExercises.map(ex => ex.id);
     
-    // Create the workout template
-    createTemplate({
-      name: workoutName,
-      description: workoutDescription.trim() || undefined,
-      exercise_ids: exerciseIds,
-    });
+    try {
+      // Create the workout template
+      await createTemplate({
+        name: workoutName,
+        description: workoutDescription.trim() || undefined,
+        exercise_ids: exerciseIds,
+        muscle_group: selectedMuscleGroup,
+      });
 
-    // If a client is selected, navigate to session with pre-populated exercises
-    if (selectedClientId) {
-      const client = activeClients.find(c => c.id === selectedClientId);
-      if (client) {
-        setSelectedClient(client);
-        navigate(`/session?exercises=${exerciseIds.join(',')}`);
+      // If a client is selected, navigate to session with pre-populated exercises
+      if (selectedClientId) {
+        const client = activeClients.find(c => c.id === selectedClientId);
+        if (client) {
+          setSelectedClient(client);
+          navigate(`/session?exercises=${exerciseIds.join(',')}`);
+        }
       }
-    }
 
-    // Clear form and close dialog
-    setWorkoutName('');
-    setWorkoutDescription('');
-    setSelectedClientId('');
-    onClearSelection();
-    onOpenChange(false);
+      // Clear form and close dialog
+      setWorkoutName('');
+      setWorkoutDescription('');
+      setSelectedMuscleGroup('');
+      setSelectedClientId('');
+      onClearSelection();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating workout template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create workout template. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -70,13 +114,29 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="workout-name">Workout Name</Label>
+            <Label htmlFor="workout-name">Workout Name *</Label>
             <Input
               id="workout-name"
               value={workoutName}
               onChange={(e) => setWorkoutName(e.target.value)}
               placeholder="Enter workout name..."
             />
+          </div>
+
+          <div>
+            <Label htmlFor="muscle-group">Primary Muscle Group *</Label>
+            <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select muscle group category..." />
+              </SelectTrigger>
+              <SelectContent>
+                {muscleGroups.map(group => (
+                  <SelectItem key={group} value={group}>
+                    {group}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
           <div>
@@ -129,7 +189,7 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
           </Button>
           <Button 
             onClick={handleCreateWorkout} 
-            disabled={!workoutName.trim() || isCreatingTemplate}
+            disabled={!workoutName.trim() || !selectedMuscleGroup || isCreatingTemplate}
           >
             {isCreatingTemplate ? "Creating..." : "Create Workout"}
           </Button>

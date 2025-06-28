@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Home, Users, BarChart3, Plus, Trophy, BookOpen } from 'lucide-react';
+import { Home, Users, BarChart3, Plus, Trophy, BookOpen, Dumbbell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MainNavigation = () => {
@@ -12,6 +12,7 @@ const MainNavigation = () => {
     { path: '/clients', label: 'Clients', icon: Users },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/session', label: 'Log Session', icon: Plus },
+    { path: '/workouts', label: 'Workouts', icon: Dumbbell },
     { path: '/records', label: 'Records', icon: Trophy },
     { path: '/library', label: 'Exercise Library', icon: BookOpen },
   ];
