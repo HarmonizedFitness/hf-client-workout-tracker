@@ -8,6 +8,7 @@ import SessionNotes from './SessionNotes';
 import SessionEmptyState from './SessionEmptyState';
 import { useSessionState } from '@/hooks/useSessionState';
 import { useSessionHandlers } from '@/hooks/useSessionHandlers';
+import { X } from 'lucide-react';
 
 interface SessionFormProps {
   client: Client;
@@ -82,9 +83,9 @@ const SessionForm = ({ client, preSelectedExercises = [], workoutTemplateId }: S
                 variant="ghost"
                 size="sm"
                 onClick={() => removeExerciseFromSession(entry.exerciseId)}
-                className="absolute top-2 right-2 z-10 text-red-600 hover:text-red-700"
+                className="absolute top-3 right-3 z-10 text-red-600 hover:text-red-700 h-8 w-8 p-0"
               >
-                Remove
+                <X className="h-4 w-4" />
               </Button>
               <IndividualSetEntry
                 exerciseName={exercise?.name || 'Unknown Exercise'}

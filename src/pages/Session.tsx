@@ -110,20 +110,17 @@ const Session = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-green-800 dark:text-green-400">
                 <UserCheck className="h-4 w-4" />
-                <span className="font-medium">Logging session for: {selectedClient.name}</span>
-                <Badge variant="secondary">
-                  {selectedClient.training_days_per_week} days/week
-                </Badge>
+                <span className="font-medium">Log New Session: {selectedClient.name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={handleClearClient}
-                  className="text-red-600 hover:text-red-700"
+                  className="text-red-600 hover:text-red-700 h-8 px-2"
                 >
-                  <X className="h-4 w-4 mr-1" />
-                  Clear Selection
+                  <X className="h-3 w-3 mr-1" />
+                  Clear
                 </Button>
                 <Select value={selectedClient.id} onValueChange={handleClientSelect}>
                   <SelectTrigger className="w-48">
