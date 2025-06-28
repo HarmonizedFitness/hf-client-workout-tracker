@@ -98,7 +98,7 @@ export const initialExercises: Exercise[] = [
   { id: '89', name: 'Seated Bent-Over Rear Delt Raise', forceType: 'Pull', muscleGroup: 'Shoulders', isFavorite: false },
   { id: '90', name: 'Seated Military Press', forceType: 'Push', muscleGroup: 'Shoulders', isFavorite: false },
   { id: '91', name: 'Single-Arm Arnold Press', forceType: 'Push', muscleGroup: 'Shoulders', isFavorite: false },
-  { id: '92', name: 'Single-Arm Dumbbell Overhead Press', forceType: 'Push', muscleGroups: 'Shoulders', isFavorite: false },
+  { id: '92', name: 'Single-Arm Dumbbell Overhead Press', forceType: 'Push', muscleGroup: 'Shoulders', isFavorite: false },
   { id: '93', name: 'Single-Arm Lateral Raise', forceType: 'Raise', muscleGroup: 'Shoulders', isFavorite: false },
   { id: '94', name: 'Single-Arm Upright Row', forceType: 'Pull', muscleGroup: 'Shoulders', isFavorite: false },
   { id: '95', name: 'Smith Machine Overhead Press', forceType: 'Push', muscleGroup: 'Shoulders', isFavorite: false },
