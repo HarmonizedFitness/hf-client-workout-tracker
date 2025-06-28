@@ -34,7 +34,7 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
   const [exerciseEntries, setExerciseEntries] = useState<ExerciseEntry[]>([]);
   const [sessionNotes, setSessionNotes] = useState('');
   const { allExercises } = useExercises();
-  const { saveSession, isSavingSession } = useWorkoutSessions();
+  const { saveSession: saveWorkoutSession, isSavingSession } = useWorkoutSessions();
   const { personalRecords, checkAndSavePRs } = usePersonalRecords(client.id);
 
   // Initialize with pre-selected exercises
@@ -96,7 +96,7 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
     });
   };
 
-  const saveSession = async () => {
+  const handleSaveSession = async () => {
     const completedSets: Array<{
       exerciseId: string;
       setNumber: number;
@@ -148,7 +148,7 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
     }
 
     // Save the session with all sets
-    saveSession({
+    saveWorkoutSession({
       clientId: client.id,
       date: today,
       sets: completedSets,
@@ -198,7 +198,7 @@ const SessionLogger = ({ client, preSelectedExercises = [], workoutTemplateId }:
         <SessionSummary 
           totalCompletedSets={getTotalCompletedSets()}
           totalPotentialPRs={getTotalPotentialPRs()}
-          onSaveSession={saveSession}
+          onSaveSession={handleSaveSession}
           isLoading={isSavingSession}
         />
       )}
