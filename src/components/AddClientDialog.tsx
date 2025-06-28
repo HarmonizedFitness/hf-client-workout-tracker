@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockClients } from '@/data/clientData';
-import { Client } from '@/types/exercise';
+import { useSupabaseClients, SupabaseClient } from '@/hooks/useSupabaseClients';
 import { Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface AddClientDialogProps {
-  onClientAdded: (client: Client) => void;
+  onClientAdded: (client: SupabaseClient) => void;
 }
 
 const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
@@ -22,7 +21,9 @@ const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
   const [newClientTrainingDays, setNewClientTrainingDays] = useState(3);
   const [newClientCostPerSession, setNewClientCostPerSession] = useState(75);
 
-  const handleAddClient = () => {
+  const { addClient, isAddingClient } = useSupabaseClients();
+
+  const handleAddClient = async () => {
     if (!newClientName.trim()) {
       toast({
         title: "Name Required",
@@ -32,34 +33,40 @@ const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
       return;
     }
 
-    const newClient: Client = {
-      id: (mockClients.length + 1).toString(),
+    const clientData = {
       name: newClientName.trim(),
       email: newClientEmail.trim() || undefined,
       phone: newClientPhone.trim() || undefined,
-      dateJoined: new Date().toISOString().split('T')[0],
-      isActive: true,
-      trainingDaysPerWeek: newClientTrainingDays,
-      costPerSession: newClientCostPerSession,
-      personalRecords: [],
-      workoutHistory: []
+      training_days_per_week: newClientTrainingDays,
+      cost_per_session: newClientCostPerSession,
     };
 
-    mockClients.push(newClient);
-    onClientAdded(newClient);
-    
-    // Reset form and close dialog
-    setNewClientName('');
-    setNewClientEmail('');
-    setNewClientPhone('');
-    setNewClientTrainingDays(3);
-    setNewClientCostPerSession(75);
-    setOpen(false);
+    try {
+      const newClient = await addClient(clientData);
+      if (newClient) {
+        onClientAdded(newClient);
+        
+        // Reset form and close dialog
+        setNewClientName('');
+        setNewClientEmail('');
+        setNewClientPhone('');
+        setNewClientTrainingDays(3);
+        setNewClientCostPerSession(75);
+        setOpen(false);
 
-    toast({
-      title: "Client Added!",
-      description: `${newClient.name} has been added to your client list.`,
-    });
+        toast({
+          title: "Client Added!",
+          description: `${newClient.name} has been added to your client list.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding client:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add client. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -162,8 +169,9 @@ const AddClientDialog = ({ onClientAdded }: AddClientDialogProps) => {
               onClick={handleAddClient} 
               className="flex-1 bg-green-600 hover:bg-green-700 h-12 text-base font-medium"
               size="lg"
+              disabled={isAddingClient}
             >
-              Add Client
+              {isAddingClient ? 'Adding...' : 'Add Client'}
             </Button>
             <Button 
               variant="outline" 

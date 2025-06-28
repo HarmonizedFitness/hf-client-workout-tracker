@@ -3,24 +3,50 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { getActiveClients } from '@/data/clientData';
+import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { DollarSign, TrendingUp, Calendar, Users, Shield, Eye } from 'lucide-react';
 import { useState } from 'react';
 import PageLayout from '@/components/PageLayout';
 
 const Analytics = () => {
   const [showFinancials, setShowFinancials] = useState(false);
-  const activeClients = getActiveClients();
+  const { activeClients, isLoading } = useSupabaseClients();
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+            <DollarSign className="h-8 w-8 text-burnt-orange" />
+            Business Analytics
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            Loading your business analytics...
+          </p>
+        </div>
+        <div className="animate-pulse space-y-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </PageLayout>
+    );
+  }
 
   // Financial calculations
   const totalWeeklyIncome = activeClients.reduce((sum, client) => 
-    sum + (client.trainingDaysPerWeek * client.costPerSession), 0
+    sum + (client.training_days_per_week * client.cost_per_session), 0
   );
   const totalMonthlyIncome = totalWeeklyIncome * 4.33; // Average weeks per month
   const averageSessionCost = activeClients.length > 0 
-    ? activeClients.reduce((sum, client) => sum + client.costPerSession, 0) / activeClients.length 
+    ? activeClients.reduce((sum, client) => sum + client.cost_per_session, 0) / activeClients.length 
     : 0;
-  const totalWeeklySessions = activeClients.reduce((sum, client) => sum + client.trainingDaysPerWeek, 0);
+  const totalWeeklySessions = activeClients.reduce((sum, client) => sum + client.training_days_per_week, 0);
 
   const FinancialContent = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -156,29 +182,38 @@ const Analytics = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {activeClients.map((client) => {
-                  const weeklyRevenue = client.trainingDaysPerWeek * client.costPerSession;
-                  const monthlyRevenue = weeklyRevenue * 4.33;
-                  
-                  return (
-                    <div key={client.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div>
-                        <div className="font-medium">{client.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {client.trainingDaysPerWeek} sessions/week × ${client.costPerSession}
+              {activeClients.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    No clients found. Add your first client to see revenue analytics.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {activeClients.map((client) => {
+                    const weeklyRevenue = client.training_days_per_week * client.cost_per_session;
+                    const monthlyRevenue = weeklyRevenue * 4.33;
+                    
+                    return (
+                      <div key={client.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div>
+                          <div className="font-medium">{client.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {client.training_days_per_week} sessions/week × ${client.cost_per_session}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium">${monthlyRevenue.toFixed(0)}/month</div>
+                          <div className="text-sm text-muted-foreground">
+                            ${weeklyRevenue}/week
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium">${monthlyRevenue.toFixed(0)}/month</div>
-                        <div className="text-sm text-muted-foreground">
-                          ${weeklyRevenue}/week
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </>
