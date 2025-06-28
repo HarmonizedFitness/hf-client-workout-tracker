@@ -1,17 +1,13 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ChevronDown, Calendar, Clock, Award, Trash2 } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useState } from 'react';
 import { SupabaseClient } from '@/hooks/useSupabaseClients';
 import { useWorkoutSessions } from '@/hooks/useWorkoutSessions';
 import { useExercises } from '@/hooks/useExercises';
-import { formatWeight } from '@/utils/weightConversions';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import WorkoutSessionItem from './WorkoutSessionItem';
 
 interface WorkoutHistoryProps {
   client: SupabaseClient;
@@ -117,119 +113,17 @@ const WorkoutHistory = ({ client }: WorkoutHistoryProps) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {sessions.map((session) => {
-            const totalSets = session.workout_sets.length;
-            const prSets = session.workout_sets.filter(set => set.is_pr).length;
-            const exercises = [...new Set(session.workout_sets.map(set => set.exercise_id))];
-            
-            return (
-              <Collapsible
-                key={session.id}
-                open={openSessions[session.id]}
-                onOpenChange={() => toggleSession(session.id)}
-              >
-                <CollapsibleTrigger className="w-full">
-                  <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(session.date).toLocaleDateString()}
-                        {session.duration_minutes && (
-                          <>
-                            <Clock className="h-4 w-4 ml-2" />
-                            {session.duration_minutes}min
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">
-                        {exercises.length} exercises
-                      </Badge>
-                      <Badge variant="outline">
-                        {totalSets} sets
-                      </Badge>
-                      {prSets > 0 && (
-                        <Badge variant="secondary" className="bg-yellow-50 text-yellow-800">
-                          <Award className="h-3 w-3 mr-1" />
-                          {prSets} PR{prSets > 1 ? 's' : ''}
-                        </Badge>
-                      )}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={(e) => e.stopPropagation()}
-                            disabled={deletingSession === session.id}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Workout Session</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this workout session from {new Date(session.date).toLocaleDateString()}? 
-                              This will permanently remove all exercises and sets from this session. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteWorkoutSession(session.id)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              Delete Workout
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                      <ChevronDown className="h-4 w-4" />
-                    </div>
-                  </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="px-4 pb-4">
-                    {session.notes && (
-                      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-muted-foreground font-medium mb-1">Session Notes:</p>
-                        <p className="text-sm">{session.notes}</p>
-                      </div>
-                    )}
-                    <div className="space-y-3">
-                      {exercises.map(exerciseId => {
-                        const exerciseSets = session.workout_sets.filter(set => set.exercise_id === exerciseId);
-                        const exerciseName = getExerciseName(exerciseId);
-                        
-                        return (
-                          <div key={exerciseId} className="border rounded-lg p-3">
-                            <h4 className="font-medium mb-2">{exerciseName}</h4>
-                            <div className="grid gap-2">
-                              {exerciseSets.map((set, index) => (
-                                <div key={set.id} className="flex items-center justify-between text-sm">
-                                  <span>Set {set.set_number}</span>
-                                  <div className="flex items-center gap-2">
-                                    <span>{formatWeight(set.weight)} × {set.reps}</span>
-                                    {set.is_pr && (
-                                      <Badge variant="secondary" className="bg-yellow-50 text-yellow-800 text-xs">
-                                        PR
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            );
-          })}
+          {sessions.map((session) => (
+            <WorkoutSessionItem
+              key={session.id}
+              session={session}
+              isOpen={openSessions[session.id]}
+              onToggle={() => toggleSession(session.id)}
+              onDelete={deleteWorkoutSession}
+              isDeleting={deletingSession === session.id}
+              getExerciseName={getExerciseName}
+            />
+          ))}
         </div>
       </CardContent>
     </Card>
