@@ -35,6 +35,7 @@ export const useWorkoutTemplates = () => {
       
       if (error) {
         console.error('Error fetching workout templates:', error);
+        console.error('Error details:', { code: error.code, message: error.message, details: error.details });
         throw error;
       }
       
@@ -58,35 +59,57 @@ export const useWorkoutTemplates = () => {
       
       console.log('Creating workout template:', template, 'for trainer:', trainer.id);
       
+      const templateData = {
+        ...template,
+        trainer_id: trainer.id,
+      };
+      
+      console.log('Template data to insert:', templateData);
+      
       const { data, error } = await supabase
         .from('workout_templates')
-        .insert({
-          ...template,
-          trainer_id: trainer.id,
-        })
+        .insert(templateData)
         .select()
         .single();
       
       if (error) {
         console.error('Error creating workout template:', error);
+        console.error('Error details:', { 
+          code: error.code, 
+          message: error.message, 
+          details: error.details,
+          hint: error.hint 
+        });
+        console.error('Template data that failed:', templateData);
         throw error;
       }
       
       console.log('Successfully created workout template:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Template creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['workout-templates'] });
       toast({
         title: "Workout Created",
-        description: "Your workout template has been saved successfully.",
+        description: `"${data.name}" has been saved successfully.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error in createTemplateMutation:', error);
+      
+      let errorMessage = "Failed to create workout template. Please try again.";
+      
+      if (error.message?.includes('row-level security')) {
+        errorMessage = "Unable to create workout template. Authentication issue detected.";
+        console.error('RLS Policy issue detected');
+      } else if (error.code === 'PGRST301') {
+        errorMessage = "Database connection issue. Please refresh and try again.";
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to create workout template. Please try again.",
+        title: "Error Creating Workout",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -100,6 +123,8 @@ export const useWorkoutTemplates = () => {
       exercise_ids?: string[];
       muscle_group?: string;
     }) => {
+      console.log('Updating workout template:', id, 'with updates:', updates);
+      
       const { data, error } = await supabase
         .from('workout_templates')
         .update(updates)
@@ -107,7 +132,13 @@ export const useWorkoutTemplates = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating workout template:', error);
+        console.error('Error details:', { code: error.code, message: error.message, details: error.details });
+        throw error;
+      }
+      
+      console.log('Successfully updated workout template:', data);
       return data;
     },
     onSuccess: () => {
@@ -117,7 +148,7 @@ export const useWorkoutTemplates = () => {
         description: "Workout template has been updated successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error updating workout template:', error);
       toast({
         title: "Error",
@@ -129,12 +160,20 @@ export const useWorkoutTemplates = () => {
 
   const deleteTemplateMutation = useMutation({
     mutationFn: async (templateId: string) => {
+      console.log('Deleting workout template:', templateId);
+      
       const { error } = await supabase
         .from('workout_templates')
         .delete()
         .eq('id', templateId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting workout template:', error);
+        console.error('Error details:', { code: error.code, message: error.message, details: error.details });
+        throw error;
+      }
+      
+      console.log('Successfully deleted workout template:', templateId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workout-templates'] });
@@ -143,7 +182,7 @@ export const useWorkoutTemplates = () => {
         description: "Workout template has been removed.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error deleting workout template:', error);
       toast({
         title: "Error",

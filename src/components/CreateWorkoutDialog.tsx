@@ -47,6 +47,14 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
   const navigate = useNavigate();
 
   const handleCreateWorkout = async () => {
+    console.log('Creating workout with data:', {
+      name: workoutName,
+      description: workoutDescription,
+      muscle_group: selectedMuscleGroup,
+      exercise_count: selectedExercises.length,
+      client_id: selectedClientId
+    });
+
     if (!workoutName.trim()) {
       toast({
         title: "Error",
@@ -65,9 +73,20 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
       return;
     }
 
+    if (selectedExercises.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one exercise.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const exerciseIds = selectedExercises.map(ex => ex.id);
     
     try {
+      console.log('Attempting to create workout template...');
+      
       // Create the workout template
       await createTemplate({
         name: workoutName,
@@ -76,13 +95,27 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
         muscle_group: selectedMuscleGroup,
       });
 
+      console.log('Workout template created successfully!');
+
       // If a client is selected, navigate to session with pre-populated exercises
-      if (selectedClientId) {
+      if (selectedClientId && selectedClientId !== 'none') {
         const client = activeClients.find(c => c.id === selectedClientId);
         if (client) {
+          console.log('Setting selected client and navigating to session:', client.name);
           setSelectedClient(client);
           navigate(`/session?exercises=${exerciseIds.join(',')}`);
+          
+          toast({
+            title: "Workout Created & Session Started",
+            description: `"${workoutName}" has been created and session started for ${client.name}.`,
+          });
         }
+      } else {
+        console.log('No client selected, staying on current page');
+        toast({
+          title: "Workout Created",
+          description: `"${workoutName}" has been saved to your workout templates.`,
+        });
       }
 
       // Clear form and close dialog
@@ -92,13 +125,10 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
       setSelectedClientId('');
       onClearSelection();
       onOpenChange(false);
+      
     } catch (error) {
-      console.error('Error creating workout template:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create workout template. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error in handleCreateWorkout:', error);
+      // Error handling is now done in the mutation's onError callback
     }
   };
 
@@ -168,6 +198,7 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
                 <SelectValue placeholder="Select a client to start session..." />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">Save template only</SelectItem>
                 {activeClients.map(client => (
                   <SelectItem key={client.id} value={client.id}>
                     <div className="flex items-center gap-2">
@@ -189,7 +220,7 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
           </Button>
           <Button 
             onClick={handleCreateWorkout} 
-            disabled={!workoutName.trim() || !selectedMuscleGroup || isCreatingTemplate}
+            disabled={!workoutName.trim() || !selectedMuscleGroup || selectedExercises.length === 0 || isCreatingTemplate}
           >
             {isCreatingTemplate ? "Creating..." : "Create Workout"}
           </Button>
