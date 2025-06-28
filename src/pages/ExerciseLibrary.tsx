@@ -7,9 +7,14 @@ import ExerciseFilters from '@/components/ExerciseFilters';
 import ExerciseGrid from '@/components/ExerciseGrid';
 import BulkActionsBar from '@/components/BulkActionsBar';
 import AddExerciseDialog from '@/components/AddExerciseDialog';
+import EditExerciseDialog from '@/components/EditExerciseDialog';
+import DeleteExerciseDialog from '@/components/DeleteExerciseDialog';
 import CreateWorkoutDialog from '@/components/CreateWorkoutDialog';
 import PageLayout from '@/components/PageLayout';
 import { useExercises } from '@/hooks/useExercises';
+
+const muscleGroups = ['Back', 'Chest', 'Quads', 'Hamstrings', 'Glutes', 'Shoulders', 'Arms (Biceps)', 'Arms (Triceps)', 'Calves', 'Core', 'Abdominals', 'Hip Abductors', 'Hips'];
+const forceTypes = ['Pull', 'Push', 'Squat', 'Raise', 'Static', 'Squeeze', 'Rotate', 'Twist', 'Stretch', 'Hold'];
 
 const ExerciseLibrary = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,9 +22,23 @@ const ExerciseLibrary = () => {
   const [selectedForceTypes, setSelectedForceTypes] = useState<string[]>([]);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCreateWorkoutDialog, setShowCreateWorkoutDialog] = useState(false);
+  const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
+  const [exerciseToDelete, setExerciseToDelete] = useState<Exercise | null>(null);
   
-  const { allExercises, addExercise, isAddingExercise } = useExercises();
+  const { 
+    allExercises, 
+    addExercise, 
+    isAddingExercise, 
+    toggleFavorite, 
+    isTogglingFavorite, 
+    updateExercise, 
+    isUpdatingExercise, 
+    deleteExercise, 
+    isDeletingExercise 
+  } = useExercises();
 
   const filteredExercises = allExercises.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -42,18 +61,17 @@ const ExerciseLibrary = () => {
   };
 
   const handleToggleFavorite = (exerciseId: string) => {
-    // TODO: Implement favorite toggle functionality
-    console.log('Toggle favorite for exercise:', exerciseId);
+    toggleFavorite(exerciseId);
   };
 
   const handleEditExercise = (exercise: Exercise) => {
-    // TODO: Implement edit exercise functionality
-    console.log('Edit exercise:', exercise);
+    setExerciseToEdit(exercise);
+    setShowEditDialog(true);
   };
 
   const handleDeleteExercise = (exercise: Exercise) => {
-    // TODO: Implement delete exercise functionality
-    console.log('Delete exercise:', exercise);
+    setExerciseToDelete(exercise);
+    setShowDeleteDialog(true);
   };
 
   const handleSelectAll = () => {
@@ -86,6 +104,26 @@ const ExerciseLibrary = () => {
       muscle_group: exerciseData.muscleGroup,
       notes: exerciseData.notes,
     });
+  };
+
+  const handleUpdateExercise = (exercise: Exercise) => {
+    updateExercise({
+      id: exercise.id,
+      name: exercise.name,
+      force_type: exercise.forceType,
+      muscle_group: exercise.muscleGroup,
+      notes: exercise.notes,
+    });
+    setShowEditDialog(false);
+    setExerciseToEdit(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (exerciseToDelete) {
+      deleteExercise(exerciseToDelete.id);
+      setShowDeleteDialog(false);
+      setExerciseToDelete(null);
+    }
   };
 
   // Create a Set of selected exercise IDs for ExerciseGrid
@@ -141,6 +179,29 @@ const ExerciseLibrary = () => {
           onOpenChange={setShowAddDialog}
           onAddExercise={handleAddExercise}
           isLoading={isAddingExercise}
+        />
+
+        <EditExerciseDialog
+          exercise={exerciseToEdit}
+          isOpen={showEditDialog}
+          onClose={() => {
+            setShowEditDialog(false);
+            setExerciseToEdit(null);
+          }}
+          onSave={handleUpdateExercise}
+          muscleGroups={muscleGroups}
+          forceTypes={forceTypes}
+        />
+
+        <DeleteExerciseDialog
+          exercise={exerciseToDelete}
+          isOpen={showDeleteDialog}
+          onClose={() => {
+            setShowDeleteDialog(false);
+            setExerciseToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          isDeleting={isDeletingExercise}
         />
 
         <CreateWorkoutDialog

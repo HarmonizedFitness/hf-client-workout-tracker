@@ -89,11 +89,144 @@ export const useExercises = () => {
     },
   });
 
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (exerciseId: string) => {
+      if (!trainer?.id) throw new Error('No trainer found');
+      
+      // Find the exercise to get current favorite status
+      const exercise = customExercises.find(ex => ex.id === exerciseId);
+      if (!exercise) {
+        // For initial exercises, we need to create a new entry in the database
+        const initialExercise = initialExercises.find(ex => ex.id === exerciseId);
+        if (initialExercise) {
+          const { data, error } = await supabase
+            .from('exercises')
+            .insert({
+              name: initialExercise.name,
+              force_type: initialExercise.forceType,
+              muscle_group: initialExercise.muscleGroup,
+              notes: initialExercise.notes,
+              created_by_trainer_id: trainer.id,
+              is_public: false,
+              is_favorite: true,
+            })
+            .select()
+            .single();
+          
+          if (error) throw error;
+          return data;
+        }
+        throw new Error('Exercise not found');
+      }
+
+      const { data, error } = await supabase
+        .from('exercises')
+        .update({ is_favorite: !exercise.is_favorite })
+        .eq('id', exerciseId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      toast({
+        title: data.is_favorite ? "Added to Favorites" : "Removed from Favorites",
+        description: `${data.name} has been ${data.is_favorite ? 'added to' : 'removed from'} your favorites.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Error toggling favorite:', error);
+    },
+  });
+
+  const updateExerciseMutation = useMutation({
+    mutationFn: async (exercise: {
+      id: string;
+      name: string;
+      force_type: string;
+      muscle_group: string;
+      notes?: string;
+    }) => {
+      if (!trainer?.id) throw new Error('No trainer found');
+      
+      const { data, error } = await supabase
+        .from('exercises')
+        .update({
+          name: exercise.name,
+          force_type: exercise.force_type,
+          muscle_group: exercise.muscle_group,
+          notes: exercise.notes,
+        })
+        .eq('id', exercise.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      toast({
+        title: "Exercise Updated",
+        description: "Exercise has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update exercise. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Error updating exercise:', error);
+    },
+  });
+
+  const deleteExerciseMutation = useMutation({
+    mutationFn: async (exerciseId: string) => {
+      if (!trainer?.id) throw new Error('No trainer found');
+      
+      const { error } = await supabase
+        .from('exercises')
+        .delete()
+        .eq('id', exerciseId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      toast({
+        title: "Exercise Deleted",
+        description: "Exercise has been deleted successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete exercise. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Error deleting exercise:', error);
+    },
+  });
+
   return {
     allExercises,
     customExercises,
     isLoading,
     addExercise: addExerciseMutation.mutate,
     isAddingExercise: addExerciseMutation.isPending,
+    toggleFavorite: toggleFavoriteMutation.mutate,
+    isTogglingFavorite: toggleFavoriteMutation.isPending,
+    updateExercise: updateExerciseMutation.mutate,
+    isUpdatingExercise: updateExerciseMutation.isPending,
+    deleteExercise: deleteExerciseMutation.mutate,
+    isDeletingExercise: deleteExerciseMutation.isPending,
   };
 };
