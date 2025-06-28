@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useWorkoutTemplates } from '@/hooks/useWorkoutTemplates';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { useClient } from '@/context/ClientContext';
+import { useTrainer } from '@/hooks/useTrainer';
 import { useNavigate } from 'react-router-dom';
 import { Exercise } from '@/types/exercise';
 import { toast } from '@/hooks/use-toast';
@@ -44,18 +45,40 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
   const { createTemplate, isCreatingTemplate } = useWorkoutTemplates();
   const { activeClients } = useSupabaseClients();
   const { setSelectedClient } = useClient();
+  const { trainer } = useTrainer();
   const navigate = useNavigate();
 
   const handleCreateWorkout = async () => {
-    console.log('Creating workout with data:', {
+    console.log('=== CREATE WORKOUT DIALOG DEBUG ===');
+    console.log('1. Form data:', {
       name: workoutName,
       description: workoutDescription,
       muscle_group: selectedMuscleGroup,
       exercise_count: selectedExercises.length,
-      client_id: selectedClientId
+      client_id: selectedClientId,
+      trainer: trainer
     });
 
+    console.log('2. Selected exercises:', selectedExercises.map(ex => ({
+      id: ex.id,
+      name: ex.name,
+      idType: typeof ex.id,
+      idLength: ex.id.length
+    })));
+
+    // Enhanced validation with detailed logging
+    if (!trainer?.id) {
+      console.error('CRITICAL: No trainer found in CreateWorkoutDialog');
+      toast({
+        title: "Authentication Error",
+        description: "Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!workoutName.trim()) {
+      console.log('Validation failed: No workout name');
       toast({
         title: "Error",
         description: "Please enter a workout name.",
@@ -65,6 +88,7 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
     }
 
     if (!selectedMuscleGroup) {
+      console.log('Validation failed: No muscle group selected');
       toast({
         title: "Error", 
         description: "Please select a muscle group category.",
@@ -74,6 +98,7 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
     }
 
     if (selectedExercises.length === 0) {
+      console.log('Validation failed: No exercises selected');
       toast({
         title: "Error",
         description: "Please select at least one exercise.",
@@ -83,9 +108,24 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
     }
 
     const exerciseIds = selectedExercises.map(ex => ex.id);
+    console.log('3. Exercise IDs to be saved:', exerciseIds);
+
+    // Validate that all exercise IDs are properly formatted
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const invalidIds = exerciseIds.filter(id => !uuidRegex.test(id));
+    
+    if (invalidIds.length > 0) {
+      console.error('CRITICAL: Invalid UUID format detected:', invalidIds);
+      toast({
+        title: "Error",
+        description: "Invalid exercise data detected. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
-      console.log('Attempting to create workout template...');
+      console.log('4. Attempting to create workout template...');
       
       // Create the workout template
       await createTemplate({
@@ -95,13 +135,13 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
         muscle_group: selectedMuscleGroup,
       });
 
-      console.log('Workout template created successfully!');
+      console.log('5. Workout template created successfully!');
 
       // If a client is selected, navigate to session with pre-populated exercises
       if (selectedClientId && selectedClientId !== 'none') {
         const client = activeClients.find(c => c.id === selectedClientId);
         if (client) {
-          console.log('Setting selected client and navigating to session:', client.name);
+          console.log('6. Setting selected client and navigating to session:', client.name);
           setSelectedClient(client);
           navigate(`/session?exercises=${exerciseIds.join(',')}`);
           
@@ -111,7 +151,7 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
           });
         }
       } else {
-        console.log('No client selected, staying on current page');
+        console.log('6. No client selected, staying on current page');
         toast({
           title: "Workout Created",
           description: `"${workoutName}" has been saved to your workout templates.`,
@@ -127,10 +167,26 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
       onOpenChange(false);
       
     } catch (error) {
-      console.error('Error in handleCreateWorkout:', error);
+      console.error('7. Error in handleCreateWorkout:', error);
       // Error handling is now done in the mutation's onError callback
     }
   };
+
+  // Show loading state if trainer is not loaded yet
+  if (!trainer) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle>Loading...</DialogTitle>
+            <DialogDescription>
+              Please wait while we load your trainer information.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -220,7 +276,7 @@ const CreateWorkoutDialog = ({ open, onOpenChange, selectedExercises, onClearSel
           </Button>
           <Button 
             onClick={handleCreateWorkout} 
-            disabled={!workoutName.trim() || !selectedMuscleGroup || selectedExercises.length === 0 || isCreatingTemplate}
+            disabled={!workoutName.trim() || !selectedMuscleGroup || selectedExercises.length === 0 || isCreatingTemplate || !trainer}
           >
             {isCreatingTemplate ? "Creating..." : "Create Workout"}
           </Button>

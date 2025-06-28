@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainer } from './useTrainer';
@@ -35,7 +34,6 @@ export const useWorkoutTemplates = () => {
       
       if (error) {
         console.error('Error fetching workout templates:', error);
-        console.error('Error details:', { code: error.code, message: error.message, details: error.details });
         throw error;
       }
       
@@ -52,20 +50,50 @@ export const useWorkoutTemplates = () => {
       exercise_ids: string[];
       muscle_group?: string;
     }) => {
+      console.log('=== WORKOUT TEMPLATE CREATION DEBUG ===');
+      console.log('1. Trainer data:', { trainer, trainerId: trainer?.id });
+      
       if (!trainer?.id) {
-        console.error('No trainer found when creating template');
-        throw new Error('No trainer found');
+        console.error('CRITICAL: No trainer found when creating template');
+        throw new Error('No trainer found - authentication issue');
       }
       
-      console.log('Creating workout template:', template, 'for trainer:', trainer.id);
+      console.log('2. Template data received:', template);
+      console.log('3. Exercise IDs format check:', {
+        exerciseIds: template.exercise_ids,
+        firstExerciseId: template.exercise_ids[0],
+        typeOfFirstId: typeof template.exercise_ids[0],
+        isArray: Array.isArray(template.exercise_ids),
+        length: template.exercise_ids.length
+      });
+
+      // Validate exercise IDs format
+      const invalidIds = template.exercise_ids.filter(id => {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        return !uuidRegex.test(id);
+      });
+
+      if (invalidIds.length > 0) {
+        console.error('CRITICAL: Invalid UUID format for exercise IDs:', invalidIds);
+        console.error('All exercise IDs must be valid UUIDs');
+        throw new Error(`Invalid exercise ID format: ${invalidIds.join(', ')}`);
+      }
       
       const templateData = {
         ...template,
         trainer_id: trainer.id,
       };
       
-      console.log('Template data to insert:', templateData);
+      console.log('4. Final template data for insert:', templateData);
       
+      // Test authentication first
+      const { data: authTest } = await supabase.auth.getUser();
+      console.log('5. Auth test:', { 
+        user: authTest?.user?.id,
+        isAuthenticated: !!authTest?.user,
+        matchesTrainer: authTest?.user?.id === trainer.user_id
+      });
+
       const { data, error } = await supabase
         .from('workout_templates')
         .insert(templateData)
@@ -73,18 +101,28 @@ export const useWorkoutTemplates = () => {
         .single();
       
       if (error) {
-        console.error('Error creating workout template:', error);
-        console.error('Error details:', { 
-          code: error.code, 
-          message: error.message, 
-          details: error.details,
-          hint: error.hint 
-        });
+        console.error('=== SUPABASE ERROR DETAILS ===');
+        console.error('Error object:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
         console.error('Template data that failed:', templateData);
-        throw error;
+        console.error('============================');
+        
+        // Provide more specific error messages
+        if (error.message?.includes('invalid input syntax for type uuid')) {
+          throw new Error('Invalid exercise ID format. Please refresh the page and try again.');
+        } else if (error.message?.includes('row-level security')) {
+          throw new Error('Authentication error. Please refresh the page and try again.');
+        } else if (error.code === 'PGRST301') {
+          throw new Error('Database connection issue. Please refresh and try again.');
+        } else {
+          throw new Error(`Database error: ${error.message}`);
+        }
       }
       
-      console.log('Successfully created workout template:', data);
+      console.log('6. Successfully created workout template:', data);
       return data;
     },
     onSuccess: (data) => {
@@ -96,20 +134,15 @@ export const useWorkoutTemplates = () => {
       });
     },
     onError: (error: any) => {
+      console.error('=== MUTATION ERROR ===');
       console.error('Error in createTemplateMutation:', error);
-      
-      let errorMessage = "Failed to create workout template. Please try again.";
-      
-      if (error.message?.includes('row-level security')) {
-        errorMessage = "Unable to create workout template. Authentication issue detected.";
-        console.error('RLS Policy issue detected');
-      } else if (error.code === 'PGRST301') {
-        errorMessage = "Database connection issue. Please refresh and try again.";
-      }
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('====================');
       
       toast({
         title: "Error Creating Workout",
-        description: errorMessage,
+        description: error.message || "Failed to create workout template. Please try again.",
         variant: "destructive",
       });
     },
