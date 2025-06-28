@@ -56,7 +56,7 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
     );
   }
 
-  // Separate PRs by type
+  // Separate PRs by type and sort correctly
   const singleWeightPRs = personalRecords
     .filter(pr => pr.pr_type === 'single_weight')
     .sort((a, b) => b.weight - a.weight);
@@ -93,7 +93,7 @@ const PersonalBests = ({ client }: PersonalBestsProps) => {
             <div className="grid gap-4">
               {singleWeightPRs.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No single weight PRs recorded yet.
+                  No max weight PRs recorded yet.
                 </div>
               ) : (
                 singleWeightPRs.map((pr, index) => (

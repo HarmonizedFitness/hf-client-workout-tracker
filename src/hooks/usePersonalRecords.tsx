@@ -1,6 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTrainer } from './useTrainer';
+import { useExercises } from './useExercises';
 import { toast } from '@/hooks/use-toast';
 import { PersonalRecordWithExercise, PRCheckData } from '@/types/personalRecord';
 import { fetchPersonalRecords, savePR } from '@/services/personalRecordService';
@@ -8,6 +9,7 @@ import { mapPersonalRecordsWithExercises, checkForNewPRs } from '@/utils/persona
 
 export const usePersonalRecords = (clientId?: string) => {
   const { trainer } = useTrainer();
+  const { customExercises } = useExercises();
   const queryClient = useQueryClient();
 
   const { data: personalRecords = [], isLoading } = useQuery({
@@ -16,7 +18,7 @@ export const usePersonalRecords = (clientId?: string) => {
       if (!trainer?.id) return [];
       
       const records = await fetchPersonalRecords(trainer.id, clientId);
-      return mapPersonalRecordsWithExercises(records);
+      return mapPersonalRecordsWithExercises(records, customExercises);
     },
     enabled: !!trainer?.id,
   });
