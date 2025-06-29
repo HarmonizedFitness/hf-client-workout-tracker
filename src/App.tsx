@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import { ClientProvider } from "@/context/ClientContext";
+import SecurityHeaders from "@/components/SecurityHeaders";
 import Home from "./pages/Home";
 import Clients from "./pages/Clients";
 import Analytics from "./pages/Analytics";
@@ -86,6 +87,7 @@ const App = () => {
   
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <SecurityHeaders />
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
