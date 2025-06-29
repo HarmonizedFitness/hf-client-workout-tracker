@@ -5,6 +5,7 @@ export interface Exercise {
   muscleGroup: 'Back' | 'Chest' | 'Quads' | 'Hamstrings' | 'Glutes' | 'Shoulders' | 'Arms (Biceps)' | 'Arms (Triceps)' | 'Calves' | 'Core' | 'Abdominals' | 'Hip Abductors' | 'Hips';
   notes?: string;
   isFavorite?: boolean;
+  dbId?: string; // Database ID for exercises that exist in Supabase
 }
 
 export interface WorkoutSet {

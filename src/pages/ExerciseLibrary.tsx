@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, Dumbbell } from 'lucide-react';
+import { Plus, Dumbbell, RotateCcw } from 'lucide-react';
 import { Exercise } from '@/types/exercise';
 import ExerciseFilters from '@/components/ExerciseFilters';
 import ExerciseGrid from '@/components/ExerciseGrid';
@@ -37,14 +38,17 @@ const ExerciseLibrary = () => {
     updateExercise, 
     isUpdatingExercise, 
     deleteExercise, 
-    isDeletingExercise 
+    isDeletingExercise,
+    resetFavorites,
+    isResettingFavorites
   } = useExercises();
 
   const filteredExercises = allExercises.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMuscleGroup = selectedMuscleGroups.length === 0 || selectedMuscleGroups.includes(exercise.muscleGroup);
     const matchesForceType = selectedForceTypes.length === 0 || selectedForceTypes.includes(exercise.forceType);
-    const matchesFavorites = !showFavorites || exercise.isFavorite;
+    // Fixed favorites filter - only show exercises that are actually favorited
+    const matchesFavorites = !showFavorites || (exercise.isFavorite === true);
     
     return matchesSearch && matchesMuscleGroup && matchesForceType && matchesFavorites;
   });
@@ -62,6 +66,9 @@ const ExerciseLibrary = () => {
   };
 
   const handleToggleFavorite = (exerciseId: string) => {
+    console.log('Toggling favorite for exercise ID:', exerciseId);
+    const exercise = allExercises.find(ex => ex.id === exerciseId);
+    console.log('Found exercise:', exercise?.name);
     toggleFavorite(exerciseId);
   };
 
@@ -131,6 +138,9 @@ const ExerciseLibrary = () => {
   // Create a Set of selected exercise IDs for ExerciseGrid
   const selectedExerciseIds = new Set(selectedExercises.map(ex => ex.id));
 
+  // Count actual favorites for debugging
+  const favoritesCount = allExercises.filter(ex => ex.isFavorite === true).length;
+
   return (
     <PageLayout>
       <div className="space-y-6">
@@ -138,9 +148,23 @@ const ExerciseLibrary = () => {
           <Dumbbell className="h-12 w-12 text-burnt-orange mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-2">Exercise Library</h1>
           <p className="text-muted-foreground">Browse and manage your exercise collection</p>
+          {favoritesCount > 0 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              {favoritesCount} exercise{favoritesCount !== 1 ? 's' : ''} marked as favorite
+            </p>
+          )}
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-between">
+          <Button 
+            onClick={resetFavorites} 
+            disabled={isResettingFavorites}
+            variant="outline"
+            className="text-red-600 hover:text-red-700"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset All Favorites
+          </Button>
           <Button onClick={() => setShowAddDialog(true)} disabled={isAddingExercise}>
             <Plus className="h-4 w-4 mr-2" />
             Add Exercise
