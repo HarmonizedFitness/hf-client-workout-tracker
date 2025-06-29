@@ -28,7 +28,7 @@ const ExerciseCard = ({
     <Card className={`hover:shadow-md transition-all duration-200 relative group ${
       isSelected ? 'ring-2 ring-burnt-orange bg-accent/10' : ''
     } ${exercise.isFavorite ? 'ring-1 ring-yellow-400/50 bg-yellow-50/20 dark:bg-yellow-900/10' : ''}`}>
-      <CardContent className="p-2.5">
+      <CardContent className="p-3">
         {/* Selection Checkbox */}
         <div className="absolute top-2 left-2 z-10">
           <Checkbox
@@ -56,29 +56,31 @@ const ExerciseCard = ({
           </Button>
         </div>
 
-        <div className="space-y-2 mt-4">
-          <h3 className={`font-semibold text-sm leading-tight pr-6 ${
+        <div className="space-y-3 mt-4">
+          {/* Centered Exercise Name */}
+          <h3 className={`font-semibold text-sm leading-tight text-center px-4 ${
             exercise.isFavorite ? 'text-yellow-700 dark:text-yellow-300' : ''
           }`}>
             {exercise.name}
           </h3>
           
-          <div className="flex flex-wrap gap-1">
-            <Badge className={`${getMuscleGroupColor(exercise.muscleGroup)} text-xs px-1.5 py-0.5`}>
+          {/* Vertically Stacked Badges */}
+          <div className="flex flex-col items-center gap-1.5">
+            <Badge className={`${getMuscleGroupColor(exercise.muscleGroup)} text-xs px-2 py-0.5`}>
               {exercise.muscleGroup}
             </Badge>
-            <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+            <Badge variant="outline" className="text-xs px-2 py-0.5">
               {exercise.forceType}
             </Badge>
           </div>
 
           {exercise.notes && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
+            <p className="text-xs text-muted-foreground line-clamp-2 text-center px-1">
               {exercise.notes}
             </p>
           )}
 
-          {/* Action Buttons - Show on hover or when selected */}
+          {/* Smaller Action Buttons */}
           <div className={`flex gap-1 transition-opacity pt-1 ${
             isSelected || 'group-hover:opacity-100 opacity-0'
           }`}>
@@ -86,7 +88,7 @@ const ExerciseCard = ({
               variant="outline"
               size="sm"
               onClick={() => onEdit(exercise)}
-              className="flex-1 h-7 text-xs px-2"
+              className="flex-1 h-6 text-xs px-2"
             >
               <Edit className="h-3 w-3 mr-1" />
               Edit
@@ -95,7 +97,7 @@ const ExerciseCard = ({
               variant="outline"
               size="sm"
               onClick={() => onDelete(exercise)}
-              className="flex-1 h-7 text-xs px-2 text-destructive hover:text-destructive"
+              className="flex-1 h-6 text-xs px-2 text-destructive hover:text-destructive"
             >
               <Trash2 className="h-3 w-3 mr-1" />
               Delete
