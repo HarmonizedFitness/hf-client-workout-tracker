@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, Dumbbell, RotateCcw } from 'lucide-react';
@@ -135,6 +134,10 @@ const ExerciseLibrary = () => {
     }
   };
 
+  const handleResetFavorites = () => {
+    resetFavorites();
+  };
+
   // Create a Set of selected exercise IDs for ExerciseGrid
   const selectedExerciseIds = new Set(selectedExercises.map(ex => ex.id));
 
@@ -157,7 +160,7 @@ const ExerciseLibrary = () => {
 
         <div className="flex justify-between">
           <Button 
-            onClick={resetFavorites} 
+            onClick={handleResetFavorites} 
             disabled={isResettingFavorites}
             variant="outline"
             className="text-red-600 hover:text-red-700"
