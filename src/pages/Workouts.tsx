@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useWorkoutTemplates, WorkoutTemplate } from '@/hooks/useWorkoutTemplates';
@@ -224,22 +225,27 @@ const Workouts = () => {
                   </div>
                   
                   <div className="flex gap-2 flex-wrap">
-                    <Select onValueChange={(clientId) => handleStartSession(template, clientId)}>
-                      <SelectTrigger asChild>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
                         <Button size="sm" className="flex-1">
                           <Play className="h-3 w-3 mr-1" />
                           Start Session
                         </Button>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No client selected</SelectItem>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem onClick={() => handleStartSession(template, 'none')}>
+                          No client selected
+                        </DropdownMenuItem>
                         {activeClients.map(client => (
-                          <SelectItem key={client.id} value={client.id}>
+                          <DropdownMenuItem 
+                            key={client.id} 
+                            onClick={() => handleStartSession(template, client.id)}
+                          >
                             {client.name}
-                          </SelectItem>
+                          </DropdownMenuItem>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     
                     <Button
                       size="sm"
