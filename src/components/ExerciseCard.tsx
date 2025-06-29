@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Exercise } from '@/types/exercise';
 import { getMuscleGroupColor } from '@/utils/muscleGroupColors';
-import { Star, Edit, Trash2 } from 'lucide-react';
+import { Star, Edit, X } from 'lucide-react';
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -34,7 +34,7 @@ const ExerciseCard = ({
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onSelect(exercise.id)}
-            className="data-[state=checked]:bg-burnt-orange data-[state=checked]:border-burnt-orange h-5 w-5"
+            className="data-[state=checked]:bg-burnt-orange data-[state=checked]:border-burnt-orange h-6 w-6 rounded-sm"
           />
         </div>
 
@@ -56,9 +56,21 @@ const ExerciseCard = ({
           </Button>
         </div>
 
+        {/* Delete X Button - Bottom Right */}
+        <div className="absolute bottom-2 right-2 z-10">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 hover:bg-red-50 p-0 text-red-500 hover:text-red-600"
+            onClick={() => onDelete(exercise)}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+
         <div className="space-y-3 mt-4">
           {/* Centered Exercise Name - Larger Font */}
-          <h3 className={`font-semibold text-base leading-tight text-center px-4 ${
+          <h3 className={`font-semibold text-lg leading-tight text-center px-4 ${
             exercise.isFavorite ? 'text-yellow-700 dark:text-yellow-300' : ''
           }`}>
             {exercise.name}
@@ -80,29 +92,20 @@ const ExerciseCard = ({
             </p>
           )}
 
-          {/* Even Smaller Action Buttons */}
-          <div className={`flex gap-1 transition-opacity pt-1 ${
-            isSelected || 'group-hover:opacity-100 opacity-0'
-          }`}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(exercise)}
-              className="flex-1 h-5 text-xs px-2"
-            >
-              <Edit className="h-3 w-3 mr-1" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDelete(exercise)}
-              className="flex-1 h-5 text-xs px-2 text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              Delete
-            </Button>
-          </div>
+          {/* Edit Button - Only Show When Selected */}
+          {isSelected && (
+            <div className="flex justify-center pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(exercise)}
+                className="h-6 text-xs px-3"
+              >
+                <Edit className="h-3 w-3 mr-1" />
+                Edit
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
