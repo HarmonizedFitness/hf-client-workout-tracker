@@ -29,12 +29,12 @@ const ExerciseCard = ({
       isSelected ? 'ring-2 ring-burnt-orange bg-accent/10' : ''
     } ${exercise.isFavorite ? 'ring-1 ring-yellow-400/50 bg-yellow-50/20 dark:bg-yellow-900/10' : ''}`}>
       <CardContent className="p-3">
-        {/* Selection Checkbox */}
+        {/* Selection Checkbox - Perfect Square */}
         <div className="absolute top-2 left-2 z-10">
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onSelect(exercise.id)}
-            className="data-[state=checked]:bg-burnt-orange data-[state=checked]:border-burnt-orange h-4 w-4"
+            className="data-[state=checked]:bg-burnt-orange data-[state=checked]:border-burnt-orange h-5 w-5"
           />
         </div>
 
@@ -57,8 +57,8 @@ const ExerciseCard = ({
         </div>
 
         <div className="space-y-3 mt-4">
-          {/* Centered Exercise Name */}
-          <h3 className={`font-semibold text-sm leading-tight text-center px-4 ${
+          {/* Centered Exercise Name - Larger Font */}
+          <h3 className={`font-semibold text-base leading-tight text-center px-4 ${
             exercise.isFavorite ? 'text-yellow-700 dark:text-yellow-300' : ''
           }`}>
             {exercise.name}
@@ -80,7 +80,7 @@ const ExerciseCard = ({
             </p>
           )}
 
-          {/* Smaller Action Buttons */}
+          {/* Even Smaller Action Buttons */}
           <div className={`flex gap-1 transition-opacity pt-1 ${
             isSelected || 'group-hover:opacity-100 opacity-0'
           }`}>
@@ -88,7 +88,7 @@ const ExerciseCard = ({
               variant="outline"
               size="sm"
               onClick={() => onEdit(exercise)}
-              className="flex-1 h-6 text-xs px-2"
+              className="flex-1 h-5 text-xs px-2"
             >
               <Edit className="h-3 w-3 mr-1" />
               Edit
@@ -97,7 +97,7 @@ const ExerciseCard = ({
               variant="outline"
               size="sm"
               onClick={() => onDelete(exercise)}
-              className="flex-1 h-6 text-xs px-2 text-destructive hover:text-destructive"
+              className="flex-1 h-5 text-xs px-2 text-destructive hover:text-destructive"
             >
               <Trash2 className="h-3 w-3 mr-1" />
               Delete
