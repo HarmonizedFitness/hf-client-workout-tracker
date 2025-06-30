@@ -9,17 +9,8 @@ import { legExercises } from './legExercises';
 import { calvesExercises } from './calvesExercises';
 import { coreExercises } from './coreExercises';
 
-export const initialExercises: Exercise[] = [
-  ...backExercises,
-  ...chestExercises,
-  ...shoulderExercises,
-  ...armBicepsExercises,
-  ...armTricepsExercises,
-  ...legExercises,
-  ...calvesExercises,
-  ...coreExercises,
-];
 
+  
 // Export individual muscle group arrays for potential future use
 export {
   backExercises,

@@ -60,7 +60,7 @@ export const useExercises = () => {
   // Create a proper mapping of exercises with correct favorites handling
   const allExercises = [
     // First add all initial exercises with their favorite status from database
-    ...initialExercises.map(exercise => {
+    ...Exercises.map(exercise => {
       // Find matching database entry by name (not ID, since initial exercises have different IDs)
       const dbExercise = customExercises.find(db => db.name === exercise.name);
       return {
