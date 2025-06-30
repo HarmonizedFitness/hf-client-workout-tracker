@@ -1,5 +1,4 @@
 import { PersonalRecord, PersonalRecordWithExercise, PRCheckData, PRSaveData } from '@/types/personalRecord';
-import { Exercises } from '@/data/exercises'; // updated import
 import { SupabaseExercise } from '@/hooks/useExercises';
 
 export const mapPersonalRecordsWithExercises = (
@@ -7,19 +6,13 @@ export const mapPersonalRecordsWithExercises = (
   customExercises: SupabaseExercise[] = []
 ): PersonalRecordWithExercise[] => {
   return records.map(record => {
-    // First check Exercises (includes built-in + favorites from Supabase)
-    let exerciseName = Exercises.find(ex => ex.id === record.exercise_id)?.name;
-    
-    // If not found, check additional custom exercises (rare case)
-    if (!exerciseName) {
-      exerciseName = customExercises.find(ex => ex.id === record.exercise_id)?.name;
-    }
-    
+    const matchedExercise = customExercises.find(ex => ex.id === record.exercise_id);
+
     return {
       ...record,
       pr_type: record.pr_type || 'single_weight',
       total_volume: record.total_volume || null,
-      exercise_name: exerciseName || 'Unknown Exercise'
+      exercise_name: matchedExercise?.name || 'Unknown Exercise'
     };
   });
 };
