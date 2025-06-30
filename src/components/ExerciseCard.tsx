@@ -24,12 +24,14 @@ const ExerciseCard = ({
   onEdit, 
   onDelete 
 }: ExerciseCardProps) => {
+  const isCustomExercise = !!exercise.createdByTrainerId;
+
   return (
     <Card className={`hover:shadow-md transition-all duration-200 relative group ${
       isSelected ? 'ring-2 ring-burnt-orange bg-accent/10' : ''
     } ${exercise.isFavorite ? 'ring-1 ring-yellow-400/50 bg-yellow-50/20 dark:bg-yellow-900/10' : ''}`}>
       <CardContent className="p-3">
-        {/* Selection Checkbox - Perfect Square */}
+        {/* Selection Checkbox */}
         <div className="absolute top-2 left-2 z-10">
           <Checkbox
             checked={isSelected}
@@ -56,24 +58,29 @@ const ExerciseCard = ({
           </Button>
         </div>
 
-        {/* Delete X Button - Bottom Right */}
-        <div className="absolute bottom-2 right-2 z-10">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-5 w-5 hover:bg-red-50 p-0 text-red-500 hover:text-red-600"
-            onClick={() => onDelete(exercise)}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
+        {/* Delete Button - Only for custom exercises */}
+        {isCustomExercise && (
+          <div className="absolute bottom-2 right-2 z-10">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 hover:bg-red-50 p-0 text-red-500 hover:text-red-600"
+              onClick={() => onDelete(exercise)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
 
         <div className="space-y-3 mt-4">
-          {/* Centered Exercise Name - Larger Font */}
+          {/* Exercise Name - Centered and Larger Font */}
           <h3 className={`font-semibold text-lg leading-tight text-center px-4 ${
             exercise.isFavorite ? 'text-yellow-700 dark:text-yellow-300' : ''
           }`}>
             {exercise.name}
+            {isCustomExercise && (
+              <Badge variant="outline" className="ml-2 text-xs">Custom</Badge>
+            )}
           </h3>
           
           {/* Vertically Stacked Badges */}
@@ -92,8 +99,8 @@ const ExerciseCard = ({
             </p>
           )}
 
-          {/* Edit Button - Only Show When Selected */}
-          {isSelected && (
+          {/* Edit Button - Only for custom exercises and when selected */}
+          {isSelected && isCustomExercise && (
             <div className="flex justify-center pt-1">
               <Button
                 variant="outline"

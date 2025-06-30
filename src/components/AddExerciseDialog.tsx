@@ -7,8 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const muscleGroups = ['Back', 'Chest', 'Quads', 'Hamstrings', 'Glutes', 'Shoulders', 'Arms (Biceps)', 'Arms (Triceps)', 'Calves', 'Core', 'Abdominals', 'Hip Abductors', 'Hips'];
-const forceTypes = ['Pull', 'Push', 'Squat', 'Raise', 'Static', 'Squeeze', 'Rotate', 'Twist', 'Stretch', 'Hold'];
+const muscleGroups = [
+  'Back', 'Chest', 'Quads', 'Hamstrings', 'Glutes', 'Shoulders', 
+  'Arms (Biceps)', 'Arms (Triceps)', 'Biceps', 'Triceps', 'Calves', 
+  'Core', 'Abdominals', 'Hip Abductors', 'Hips', 'Forearms', 'Traps', 
+  'Lats', 'Other'
+];
+
+const forceTypes = [
+  'Pull', 'Push', 'Squat', 'Raise', 'Static', 'Squeeze', 
+  'Rotate', 'Twist', 'Stretch', 'Hold', 'Other'
+];
 
 interface AddExerciseDialogProps {
   open: boolean;
@@ -49,9 +58,9 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg">Add New Exercise</DialogTitle>
+          <DialogTitle className="text-lg">Add Custom Exercise</DialogTitle>
           <DialogDescription>
-            Create a custom exercise for your library
+            Create a custom exercise for your personal library
           </DialogDescription>
         </DialogHeader>
         

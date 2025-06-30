@@ -127,52 +127,64 @@ export type Database = {
       }
       exercises: {
         Row: {
-          created_at: string | null
-          created_by: string | null
+          classification: string | null
           created_by_trainer_id: string | null
+          difficulty: string | null
+          equipment: string | null
           force_type: string
           id: string
           is_favorite: boolean | null
           is_public: boolean | null
-          muscle_group: string
+          laterality: string | null
+          mechanics: string | null
+          muscle_group: string | null
           name: string
           notes: string | null
+          trainer_id: string | null
         }
         Insert: {
-          created_at?: string | null
-          created_by?: string | null
+          classification?: string | null
           created_by_trainer_id?: string | null
+          difficulty?: string | null
+          equipment?: string | null
           force_type: string
           id?: string
           is_favorite?: boolean | null
           is_public?: boolean | null
-          muscle_group: string
+          laterality?: string | null
+          mechanics?: string | null
+          muscle_group?: string | null
           name: string
           notes?: string | null
+          trainer_id?: string | null
         }
         Update: {
-          created_at?: string | null
-          created_by?: string | null
+          classification?: string | null
           created_by_trainer_id?: string | null
+          difficulty?: string | null
+          equipment?: string | null
           force_type?: string
           id?: string
           is_favorite?: boolean | null
           is_public?: boolean | null
-          muscle_group?: string
+          laterality?: string | null
+          mechanics?: string | null
+          muscle_group?: string | null
           name?: string
           notes?: string | null
+          trainer_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "exercises_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "exercises_created_by_trainer_id_fkey"
+            columns: ["created_by_trainer_id"]
             isOneToOne: false
             referencedRelation: "trainers"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "exercises_created_by_trainer_id_fkey"
-            columns: ["created_by_trainer_id"]
+            foreignKeyName: "exercises_trainer_id_fkey"
+            columns: ["trainer_id"]
             isOneToOne: false
             referencedRelation: "trainers"
             referencedColumns: ["id"]

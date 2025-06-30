@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainer } from './useTrainer';
@@ -12,21 +13,21 @@ export interface SupabaseExercise {
   is_favorite?: boolean;
   is_public?: boolean;
   created_by_trainer_id?: string;
+  trainer_id?: string;
 }
 
 export const useExercises = () => {
   const { trainer } = useTrainer();
   const queryClient = useQueryClient();
 
-  const { data: customExercises = [], isLoading } = useQuery({
+  const { data: allExercises = [], isLoading } = useQuery({
     queryKey: ['exercises', trainer?.id],
     queryFn: async () => {
-      if (!trainer?.id) return [];
-
+      // Query all public exercises and trainer's custom exercises
       const { data, error } = await supabase
         .from('exercises')
         .select('*')
-        .or(`is_public.eq.true,created_by_trainer_id.eq.${trainer.id}`);
+        .eq('is_public', true);
 
       if (error) throw error;
       return data as SupabaseExercise[];
@@ -34,35 +35,78 @@ export const useExercises = () => {
     enabled: !!trainer?.id,
   });
 
-  const resetFavoritesMutation = useMutation({
-    mutationFn: async () => {
-      if (!trainer?.id) throw new Error('No trainer found');
+  // Get trainer-specific favorites
+  const { data: trainerFavorites = [] } = useQuery({
+    queryKey: ['trainer-favorites', trainer?.id],
+    queryFn: async () => {
+      if (!trainer?.id) return [];
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('exercises')
-        .update({ is_favorite: false })
-        .eq('created_by_trainer_id', trainer.id);
+        .select('id')
+        .eq('trainer_id', trainer.id)
+        .eq('is_favorite', true);
 
       if (error) throw error;
+      return data.map(item => item.id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['exercises'] });
-      toast({
-        title: "Favorites Reset",
-        description: "All exercise favorites have been reset.",
-      });
-    },
+    enabled: !!trainer?.id,
   });
 
-  const allExercises = customExercises.map(ex => ({
-    id: ex.id,
-    name: ex.name,
-    forceType: ex.force_type as any,
-    muscleGroup: ex.muscle_group as any,
-    notes: ex.notes,
-    isFavorite: ex.is_favorite || false,
-    dbId: ex.id,
-  }));
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (exerciseId: string) => {
+      if (!trainer?.id) throw new Error('No trainer found');
+
+      const isFavorite = trainerFavorites.includes(exerciseId);
+      
+      if (isFavorite) {
+        // Remove favorite - delete the trainer_id association
+        const { error } = await supabase
+          .from('exercises')
+          .update({ 
+            trainer_id: null,
+            is_favorite: false 
+          })
+          .eq('id', exerciseId)
+          .eq('trainer_id', trainer.id);
+
+        if (error) throw error;
+      } else {
+        // Add favorite - set trainer_id and is_favorite
+        const { error } = await supabase
+          .from('exercises')
+          .update({ 
+            trainer_id: trainer.id,
+            is_favorite: true 
+          })
+          .eq('id', exerciseId);
+
+        if (error) throw error;
+      }
+
+      return { exerciseId, isFavorite: !isFavorite };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      queryClient.invalidateQueries({ queryKey: ['trainer-favorites'] });
+      
+      const exercise = allExercises.find(ex => ex.id === data.exerciseId);
+      const exerciseName = exercise?.name || 'Exercise';
+      
+      toast({
+        title: data.isFavorite ? "Added to Favorites" : "Removed from Favorites",
+        description: `${exerciseName} has been ${data.isFavorite ? 'added to' : 'removed from'} your favorites.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Error toggling favorite:', error);
+    },
+  });
 
   const addExerciseMutation = useMutation({
     mutationFn: async (exercise: {
@@ -104,41 +148,6 @@ export const useExercises = () => {
     },
   });
 
-  const toggleFavoriteMutation = useMutation({
-    mutationFn: async (exerciseId: string) => {
-      if (!trainer?.id) throw new Error('No trainer found');
-
-      const exercise = allExercises.find(ex => ex.id === exerciseId);
-      if (!exercise) throw new Error('Exercise not found');
-
-      const { data, error } = await supabase
-        .from('exercises')
-        .update({ is_favorite: !exercise.isFavorite })
-        .eq('id', exercise.dbId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return { ...data, exerciseName: exercise.name };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['exercises'] });
-      const exerciseName = data.exerciseName || data.name;
-      toast({
-        title: data.is_favorite ? "Added to Favorites" : "Removed from Favorites",
-        description: `${exerciseName} has been ${data.is_favorite ? 'added to' : 'removed from'} your favorites.`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update favorite status. Please try again.",
-        variant: "destructive",
-      });
-      console.error('Error toggling favorite:', error);
-    },
-  });
-
   const updateExerciseMutation = useMutation({
     mutationFn: async (exercise: {
       id: string;
@@ -149,8 +158,6 @@ export const useExercises = () => {
     }) => {
       if (!trainer?.id) throw new Error('No trainer found');
 
-      const dbId = exercise.id;
-
       const { data, error } = await supabase
         .from('exercises')
         .update({
@@ -159,7 +166,7 @@ export const useExercises = () => {
           muscle_group: exercise.muscle_group,
           notes: exercise.notes,
         })
-        .eq('id', dbId)
+        .eq('id', exercise.id)
         .select()
         .single();
 
@@ -187,15 +194,11 @@ export const useExercises = () => {
     mutationFn: async (exerciseId: string) => {
       if (!trainer?.id) throw new Error('No trainer found');
 
-      const exercise = allExercises.find(ex => ex.id === exerciseId);
-      if (!exercise?.dbId) {
-        throw new Error('Cannot delete exercise without database entry');
-      }
-
       const { error } = await supabase
         .from('exercises')
         .delete()
-        .eq('id', exercise.dbId);
+        .eq('id', exerciseId)
+        .eq('created_by_trainer_id', trainer.id);
 
       if (error) throw error;
     },
@@ -216,9 +219,23 @@ export const useExercises = () => {
     },
   });
 
+  // Map exercises to the format expected by the UI
+  const mappedExercises = allExercises.map(ex => ({
+    id: ex.id,
+    name: ex.name,
+    forceType: ex.force_type as any,
+    muscleGroup: ex.muscle_group as any,
+    notes: ex.notes,
+    isFavorite: trainerFavorites.includes(ex.id),
+    dbId: ex.id,
+    isPublic: ex.is_public,
+    createdByTrainerId: ex.created_by_trainer_id,
+    trainerId: ex.trainer_id,
+  }));
+
   return {
-    allExercises,
-    customExercises,
+    allExercises: mappedExercises,
+    customExercises: allExercises,
     isLoading,
     addExercise: addExerciseMutation.mutate,
     isAddingExercise: addExerciseMutation.isPending,
@@ -228,7 +245,5 @@ export const useExercises = () => {
     isUpdatingExercise: updateExerciseMutation.isPending,
     deleteExercise: deleteExerciseMutation.mutate,
     isDeletingExercise: deleteExerciseMutation.isPending,
-    resetFavorites: resetFavoritesMutation.mutate,
-    isResettingFavorites: resetFavoritesMutation.isPending,
   };
 };

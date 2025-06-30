@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, Dumbbell, RotateCcw } from 'lucide-react';
+import { Plus, Dumbbell } from 'lucide-react';
 import { Exercise } from '@/types/exercise';
 import ExerciseFilters from '@/components/ExerciseFilters';
 import ExerciseGrid from '@/components/ExerciseGrid';
@@ -12,8 +13,18 @@ import CreateWorkoutDialog from '@/components/CreateWorkoutDialog';
 import PageLayout from '@/components/PageLayout';
 import { useExercises } from '@/hooks/useExercises';
 
-const muscleGroups = ['Back', 'Chest', 'Quads', 'Hamstrings', 'Glutes', 'Shoulders', 'Arms (Biceps)', 'Arms (Triceps)', 'Calves', 'Core', 'Abdominals', 'Hip Abductors', 'Hips'];
-const forceTypes = ['Pull', 'Push', 'Squat', 'Raise', 'Static', 'Squeeze', 'Rotate', 'Twist', 'Stretch', 'Hold'];
+// Updated to include all possible values from your 1,200+ exercises
+const muscleGroups = [
+  'Back', 'Chest', 'Quads', 'Hamstrings', 'Glutes', 'Shoulders', 
+  'Arms (Biceps)', 'Arms (Triceps)', 'Biceps', 'Triceps', 'Calves', 
+  'Core', 'Abdominals', 'Hip Abductors', 'Hips', 'Forearms', 'Traps', 
+  'Lats', 'Other'
+];
+
+const forceTypes = [
+  'Pull', 'Push', 'Squat', 'Raise', 'Static', 'Squeeze', 
+  'Rotate', 'Twist', 'Stretch', 'Hold', 'Other'
+];
 
 const ExerciseLibrary = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,16 +49,22 @@ const ExerciseLibrary = () => {
     isUpdatingExercise, 
     deleteExercise, 
     isDeletingExercise,
-    resetFavorites,
-    isResettingFavorites
+    isLoading
   } = useExercises();
 
   const filteredExercises = allExercises.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMuscleGroup = selectedMuscleGroups.length === 0 || selectedMuscleGroups.includes(exercise.muscleGroup);
-    const matchesForceType = selectedForceTypes.length === 0 || selectedForceTypes.includes(exercise.forceType);
-    // Fixed favorites filter - only show exercises that are actually favorited
-    const matchesFavorites = !showFavorites || (exercise.isFavorite === true);
+    const matchesMuscleGroup = selectedMuscleGroups.length === 0 || 
+      selectedMuscleGroups.some(group => 
+        exercise.muscleGroup.toLowerCase().includes(group.toLowerCase()) ||
+        group.toLowerCase().includes(exercise.muscleGroup.toLowerCase())
+      );
+    const matchesForceType = selectedForceTypes.length === 0 || 
+      selectedForceTypes.some(type => 
+        exercise.forceType.toLowerCase().includes(type.toLowerCase()) ||
+        type.toLowerCase().includes(exercise.forceType.toLowerCase())
+      );
+    const matchesFavorites = !showFavorites || exercise.isFavorite === true;
     
     return matchesSearch && matchesMuscleGroup && matchesForceType && matchesFavorites;
   });
@@ -72,13 +89,19 @@ const ExerciseLibrary = () => {
   };
 
   const handleEditExercise = (exercise: Exercise) => {
-    setExerciseToEdit(exercise);
-    setShowEditDialog(true);
+    // Only allow editing of custom exercises created by trainer
+    if (exercise.createdByTrainerId) {
+      setExerciseToEdit(exercise);
+      setShowEditDialog(true);
+    }
   };
 
   const handleDeleteExercise = (exercise: Exercise) => {
-    setExerciseToDelete(exercise);
-    setShowDeleteDialog(true);
+    // Only allow deleting of custom exercises created by trainer
+    if (exercise.createdByTrainerId) {
+      setExerciseToDelete(exercise);
+      setShowDeleteDialog(true);
+    }
   };
 
   const handleSelectAll = () => {
@@ -134,15 +157,21 @@ const ExerciseLibrary = () => {
     }
   };
 
-  const handleResetFavorites = () => {
-    resetFavorites();
-  };
-
-  // Create a Set of selected exercise IDs for ExerciseGrid
   const selectedExerciseIds = new Set(selectedExercises.map(ex => ex.id));
-
-  // Count actual favorites for debugging
   const favoritesCount = allExercises.filter(ex => ex.isFavorite === true).length;
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Dumbbell className="h-12 w-12 text-burnt-orange mx-auto mb-4 animate-pulse" />
+            <p className="text-muted-foreground">Loading exercises...</p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -151,26 +180,18 @@ const ExerciseLibrary = () => {
           <Dumbbell className="h-12 w-12 text-burnt-orange mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-2">Exercise Library</h1>
           <p className="text-muted-foreground">Browse and manage your exercise collection</p>
-          {favoritesCount > 0 && (
-            <p className="text-sm text-muted-foreground mt-2">
-              {favoritesCount} exercise{favoritesCount !== 1 ? 's' : ''} marked as favorite
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground mt-2">
+            {allExercises.length} total exercises
+            {favoritesCount > 0 && (
+              <span className="ml-2">• {favoritesCount} favorite{favoritesCount !== 1 ? 's' : ''}</span>
+            )}
+          </p>
         </div>
 
-        <div className="flex justify-between">
-          <Button 
-            onClick={handleResetFavorites} 
-            disabled={isResettingFavorites}
-            variant="outline"
-            className="text-red-600 hover:text-red-700"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset All Favorites
-          </Button>
+        <div className="flex justify-end">
           <Button onClick={() => setShowAddDialog(true)} disabled={isAddingExercise}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Exercise
+            Add Custom Exercise
           </Button>
         </div>
 

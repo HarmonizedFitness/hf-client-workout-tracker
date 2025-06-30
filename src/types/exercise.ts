@@ -1,11 +1,15 @@
+
 export interface Exercise {
   id: string;
   name: string;
-  forceType: 'Pull' | 'Push' | 'Squat' | 'Raise' | 'Static' | 'Squeeze' | 'Rotate' | 'Twist' | 'Stretch' | 'Hold';
-  muscleGroup: 'Back' | 'Chest' | 'Quads' | 'Hamstrings' | 'Glutes' | 'Shoulders' | 'Arms (Biceps)' | 'Arms (Triceps)' | 'Calves' | 'Core' | 'Abdominals' | 'Hip Abductors' | 'Hips';
+  forceType: 'Pull' | 'Push' | 'Squat' | 'Raise' | 'Static' | 'Squeeze' | 'Rotate' | 'Twist' | 'Stretch' | 'Hold' | 'Other';
+  muscleGroup: 'Back' | 'Chest' | 'Quads' | 'Hamstrings' | 'Glutes' | 'Shoulders' | 'Arms (Biceps)' | 'Arms (Triceps)' | 'Biceps' | 'Triceps' | 'Calves' | 'Core' | 'Abdominals' | 'Hip Abductors' | 'Hips' | 'Forearms' | 'Traps' | 'Lats' | 'Other';
   notes?: string;
   isFavorite?: boolean;
-  dbId?: string; // Database ID for exercises that exist in Supabase
+  dbId?: string;
+  isPublic?: boolean;
+  createdByTrainerId?: string;
+  trainerId?: string;
 }
 
 export interface WorkoutSet {
