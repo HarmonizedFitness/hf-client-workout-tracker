@@ -1,6 +1,5 @@
-
 import { PersonalRecord, PersonalRecordWithExercise, PRCheckData, PRSaveData } from '@/types/personalRecord';
-import { initialExercises } from '@/data/exercises';
+import { Exercises } from '@/data/exercises'; // updated import
 import { SupabaseExercise } from '@/hooks/useExercises';
 
 export const mapPersonalRecordsWithExercises = (
@@ -8,10 +7,10 @@ export const mapPersonalRecordsWithExercises = (
   customExercises: SupabaseExercise[] = []
 ): PersonalRecordWithExercise[] => {
   return records.map(record => {
-    // First check initial exercises
-    let exerciseName = initialExercises.find(ex => ex.id === record.exercise_id)?.name;
+    // First check Exercises (includes built-in + favorites from Supabase)
+    let exerciseName = Exercises.find(ex => ex.id === record.exercise_id)?.name;
     
-    // If not found, check custom exercises from Supabase
+    // If not found, check additional custom exercises (rare case)
     if (!exerciseName) {
       exerciseName = customExercises.find(ex => ex.id === record.exercise_id)?.name;
     }
@@ -31,8 +30,6 @@ export const checkForNewPRs = (
 ): PRSaveData[] => {
   const { clientId, exerciseId, weight, reps, setNumber, date, sessionId } = checkData;
   
-  console.log('Checking PRs for:', checkData);
-  
   const weightInLbs = weight;
   const singleSetVolume = weightInLbs * reps;
   
@@ -40,19 +37,14 @@ export const checkForNewPRs = (
     pr => pr.client_id === clientId && pr.exercise_id === exerciseId
   );
 
-  console.log('Existing PRs for exercise:', exercisePRs);
-
   const newPRs: PRSaveData[] = [];
 
-  // Check for Max Weight PR - find the absolute heaviest weight ever lifted for this exercise
+  // Check for Max Weight PR
   const currentMaxWeightPR = exercisePRs
     .filter(pr => pr.pr_type === 'single_weight')
     .reduce((max, pr) => pr.weight > max ? pr.weight : max, 0);
 
-  console.log('Current max weight PR (LBS):', currentMaxWeightPR, 'New weight (LBS):', weightInLbs);
-
   if (weightInLbs > currentMaxWeightPR) {
-    console.log('New max weight PR detected!');
     newPRs.push({
       clientId,
       exerciseId,
@@ -65,15 +57,12 @@ export const checkForNewPRs = (
     });
   }
 
-  // Check for Volume PR - find the highest single-set volume (weight × reps) ever achieved
+  // Check for Volume PR
   const currentMaxVolumePR = exercisePRs
     .filter(pr => pr.pr_type === 'volume')
     .reduce((max, pr) => (pr.total_volume || 0) > max ? (pr.total_volume || 0) : max, 0);
 
-  console.log('Current max volume PR (LBS):', currentMaxVolumePR, 'New single-set volume (LBS):', singleSetVolume);
-
   if (singleSetVolume > currentMaxVolumePR) {
-    console.log('New volume PR detected!');
     newPRs.push({
       clientId,
       exerciseId,
