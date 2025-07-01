@@ -78,7 +78,16 @@ const ExerciseLibrary = () => {
       
       return matchesSearch && matchesMuscleGroup && matchesForceType && matchesFavorites;
     })
-    .sort((a, b) => a.name.localeCompare(b.name)); // Always sort alphabetically
+    .sort((a, b) => a.name.localeCompare(b.name)); // Always sort alphabetically by name
+
+  console.log('Filtered exercises:', {
+    total: allExercises.length,
+    filtered: filteredExercises.length,
+    showFavorites,
+    searchTerm,
+    selectedMuscleGroups,
+    selectedForceTypes
+  });
 
   // Selection handlers
   const handleSelectExercise = (exerciseId: string) => {
@@ -175,6 +184,13 @@ const ExerciseLibrary = () => {
   // Computed values
   const selectedExerciseIds = new Set(selectedExercises.map(ex => ex.id));
   const favoritesCount = allExercises.filter(ex => ex.isFavorite === true).length;
+
+  console.log('ExerciseLibrary render:', {
+    totalExercises: allExercises.length,
+    filteredExercises: filteredExercises.length,
+    favoritesCount,
+    selectedCount: selectedExercises.length
+  });
 
   if (isLoading) {
     return (

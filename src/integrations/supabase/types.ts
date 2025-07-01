@@ -131,7 +131,7 @@ export type Database = {
           created_by_trainer_id: string | null
           difficulty: string | null
           equipment: string | null
-          force_type: string
+          force_type: string | null
           id: string
           is_favorite: boolean | null
           is_public: boolean | null
@@ -147,7 +147,7 @@ export type Database = {
           created_by_trainer_id?: string | null
           difficulty?: string | null
           equipment?: string | null
-          force_type: string
+          force_type?: string | null
           id?: string
           is_favorite?: boolean | null
           is_public?: boolean | null
@@ -163,7 +163,7 @@ export type Database = {
           created_by_trainer_id?: string | null
           difficulty?: string | null
           equipment?: string | null
-          force_type?: string
+          force_type?: string | null
           id?: string
           is_favorite?: boolean | null
           is_public?: boolean | null

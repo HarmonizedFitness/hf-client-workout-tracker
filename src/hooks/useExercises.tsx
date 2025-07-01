@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainer } from './useTrainer';
@@ -23,13 +22,22 @@ export const useExercises = () => {
   const { data: allExercises = [], isLoading } = useQuery({
     queryKey: ['exercises', trainer?.id],
     queryFn: async () => {
+      console.log('Fetching exercises with trainer ID:', trainer?.id);
+      
       // Query all public exercises and trainer's custom exercises
+      // Remove row limit by using .range(0, 1499) to get up to 1500 exercises
       const { data, error } = await supabase
         .from('exercises')
         .select('*')
-        .eq('is_public', true);
+        .eq('is_public', true)
+        .range(0, 1499);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching exercises:', error);
+        throw error;
+      }
+
+      console.log('Fetched exercises count:', data?.length || 0);
       return data as SupabaseExercise[];
     },
     enabled: !!trainer?.id,
@@ -47,7 +55,12 @@ export const useExercises = () => {
         .eq('trainer_id', trainer.id)
         .eq('is_favorite', true);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching trainer favorites:', error);
+        throw error;
+      }
+
+      console.log('Trainer favorites count:', data?.length || 0);
       return data.map(item => item.id);
     },
     enabled: !!trainer?.id,
@@ -69,7 +82,7 @@ export const useExercises = () => {
       });
 
       if (currentIsFavorite) {
-        // Remove favorite - clear trainer_id and set is_favorite to false
+        // Remove favorite - only update the specific exercise by ID
         const { error } = await supabase
           .from('exercises')
           .update({ 
@@ -79,7 +92,10 @@ export const useExercises = () => {
           .eq('id', exerciseId)
           .eq('trainer_id', trainer.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error removing favorite:', error);
+          throw error;
+        }
         
         console.log('Toggle favorite - After mutation (removed):', {
           exerciseName: exercise?.name || 'Unknown',
@@ -89,7 +105,19 @@ export const useExercises = () => {
         
         return { exerciseId, isFavorite: false };
       } else {
-        // Add favorite - set trainer_id and is_favorite to true
+        // Add to favorites - only update the specific exercise by ID
+        // First check if this exercise already has a trainer_id to prevent duplicates
+        const { data: existingFavorite } = await supabase
+          .from('exercises')
+          .select('id, trainer_id, is_favorite')
+          .eq('id', exerciseId)
+          .single();
+
+        if (existingFavorite?.trainer_id === trainer.id && existingFavorite?.is_favorite) {
+          console.log('Exercise is already favorited by this trainer');
+          return { exerciseId, isFavorite: true };
+        }
+
         const { error } = await supabase
           .from('exercises')
           .update({ 
@@ -98,7 +126,10 @@ export const useExercises = () => {
           })
           .eq('id', exerciseId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error adding favorite:', error);
+          throw error;
+        }
         
         console.log('Toggle favorite - After mutation (added):', {
           exerciseName: exercise?.name || 'Unknown',
@@ -147,6 +178,19 @@ export const useExercises = () => {
     }) => {
       if (!trainer?.id) throw new Error('No trainer found');
 
+      // Check if exercise already exists to prevent duplicates
+      const { data: existingExercise } = await supabase
+        .from('exercises')
+        .select('id')
+        .eq('name', exercise.name)
+        .eq('created_by_trainer_id', trainer.id)
+        .single();
+
+      if (existingExercise) {
+        console.log('Exercise already exists:', existingExercise.id);
+        return existingExercise;
+      }
+
       const { data, error } = await supabase
         .from('exercises')
         .insert({
@@ -159,6 +203,7 @@ export const useExercises = () => {
         .single();
 
       if (error) throw error;
+      console.log('New exercise created:', data.id);
       return data;
     },
     onSuccess: () => {
@@ -263,7 +308,10 @@ export const useExercises = () => {
       createdByTrainerId: ex.created_by_trainer_id,
       trainerId: ex.trainer_id,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
+    .sort((a, b) => a.name.localeCompare(b.name)); // Always sort alphabetically by name
+
+  console.log('Mapped exercises count:', mappedExercises.length);
+  console.log('Favorites count:', mappedExercises.filter(ex => ex.isFavorite).length);
 
   return {
     allExercises: mappedExercises,

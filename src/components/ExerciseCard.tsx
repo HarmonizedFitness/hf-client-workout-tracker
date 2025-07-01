@@ -36,6 +36,13 @@ const ExerciseCard = ({
     onToggleFavorite(exercise.id);
   };
 
+  console.log('ExerciseCard render:', {
+    exerciseId: exercise.id,
+    exerciseName: exercise.name,
+    isFavorite,
+    isSelected
+  });
+
   return (
     <Card className={`hover:shadow-md transition-all duration-200 relative group ${
       isSelected ? 'ring-2 ring-burnt-orange bg-accent/10' : ''
