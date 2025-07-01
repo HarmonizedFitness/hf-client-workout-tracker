@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { getMuscleGroupColor } from '@/utils/muscleGroupColors';
-import { Plus, Search, X } from 'lucide-react';
+import { Plus, Search, X, Star } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useExercises } from '@/hooks/useExercises';
 import AddExerciseDialog from './AddExerciseDialog';
@@ -20,6 +21,7 @@ interface ExerciseSelectorProps {
 const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const { allExercises, isLoading, addExercise, isAddingExercise } = useExercises();
 
@@ -69,10 +71,28 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
     }, 100);
   };
 
-  const filteredExercises = allExercises.filter(exercise =>
-    exercise.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-    exercise.muscleGroup.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  // Filter exercises based on search term and favorites toggle
+  const filteredExercises = allExercises
+    .filter(exercise => {
+      // Search term filter - matches name or muscle group
+      const matchesSearch = !searchValue || 
+        exercise.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+        exercise.muscleGroup.toLowerCase().includes(searchValue.toLowerCase());
+      
+      // Favorites filter - only show favorites when toggle is active
+      const matchesFavorites = !showFavoritesOnly || exercise.isFavorite === true;
+      
+      return matchesSearch && matchesFavorites;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name)); // Always sort alphabetically
+
+  console.log('ExerciseSelector - Filtered exercises:', {
+    total: allExercises.length,
+    filtered: filteredExercises.length,
+    showFavoritesOnly,
+    searchValue,
+    favorites: allExercises.filter(ex => ex.isFavorite === true).length
+  });
 
   if (isLoading) {
     return (
@@ -94,6 +114,25 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Favorites Toggle */}
+          <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
+            <Checkbox
+              id="favorites-toggle"
+              checked={showFavoritesOnly}
+              onCheckedChange={setShowFavoritesOnly}
+              className="data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500"
+            />
+            <Label htmlFor="favorites-toggle" className="flex items-center gap-2 cursor-pointer">
+              <Star className={`h-4 w-4 ${showFavoritesOnly ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+              Show Favorites Only
+              {showFavoritesOnly && (
+                <Badge variant="secondary" className="text-xs">
+                  {allExercises.filter(ex => ex.isFavorite === true).length} favorites
+                </Badge>
+              )}
+            </Label>
+          </div>
+
           <div>
             <Label>Select or Search Exercise</Label>
             <div className="flex gap-2 mt-2">
@@ -108,7 +147,8 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
                     <div className="flex items-center gap-2">
                       <Search className="h-4 w-4" />
                       <span className="truncate">
-                        {searchValue ? `Search: "${searchValue}"` : "Search exercises..."}
+                        {searchValue ? `Search: "${searchValue}"` : 
+                         showFavoritesOnly ? "Search favorites..." : "Search exercises..."}
                       </span>
                     </div>
                   </Button>
@@ -116,7 +156,7 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
                 <PopoverContent className="w-[400px] p-0" align="start">
                   <Command>
                     <CommandInput 
-                      placeholder="Search exercises..." 
+                      placeholder={showFavoritesOnly ? "Search favorites..." : "Search exercises..."} 
                       value={searchValue}
                       onValueChange={setSearchValue}
                       className="h-12"
@@ -124,7 +164,12 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
                     <CommandList className="max-h-[300px]">
                       <CommandEmpty>
                         <div className="py-6 text-center">
-                          <p className="text-sm text-muted-foreground mb-2">No exercises found</p>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {showFavoritesOnly ? 
+                              "No favorite exercises found" : 
+                              "No exercises found"
+                            }
+                          </p>
                           <Button
                             variant="outline"
                             size="sm"
@@ -151,6 +196,9 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
                                 <Badge className={`${getMuscleGroupColor(exercise.muscleGroup)} text-xs`}>
                                   {exercise.muscleGroup}
                                 </Badge>
+                                {exercise.isFavorite && (
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                )}
                               </div>
                               {existingExerciseIds.includes(exercise.id) && (
                                 <Badge variant="secondary" className="text-xs">
@@ -176,17 +224,37 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
               </Button>
             </div>
             
-            {searchValue && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSearchValue('')}
-                className="mt-2 h-8"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear search
-              </Button>
-            )}
+            {/* Clear filters section */}
+            <div className="flex items-center gap-2 mt-2">
+              {searchValue && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchValue('')}
+                  className="h-8"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Clear search
+                </Button>
+              )}
+              {showFavoritesOnly && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFavoritesOnly(false)}
+                  className="h-8"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Show all exercises
+                </Button>
+              )}
+            </div>
+
+            {/* Results summary */}
+            <div className="text-xs text-muted-foreground mt-2">
+              Showing {filteredExercises.length} of {allExercises.length} exercises
+              {showFavoritesOnly && ` (favorites only)`}
+            </div>
           </div>
         </CardContent>
       </Card>

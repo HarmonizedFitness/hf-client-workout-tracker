@@ -134,7 +134,7 @@ export type Database = {
           force_type: string | null
           id: string
           is_favorite: boolean | null
-          is_public: boolean | null
+          is_public: boolean
           laterality: string | null
           mechanics: string | null
           muscle_group: string | null
@@ -150,7 +150,7 @@ export type Database = {
           force_type?: string | null
           id?: string
           is_favorite?: boolean | null
-          is_public?: boolean | null
+          is_public?: boolean
           laterality?: string | null
           mechanics?: string | null
           muscle_group?: string | null
@@ -166,7 +166,7 @@ export type Database = {
           force_type?: string | null
           id?: string
           is_favorite?: boolean | null
-          is_public?: boolean | null
+          is_public?: boolean
           laterality?: string | null
           mechanics?: string | null
           muscle_group?: string | null
