@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dumbbell } from 'lucide-react';
 import { Exercise } from '@/types/exercise';
@@ -54,23 +53,32 @@ const ExerciseLibrary = () => {
     isLoading
   } = useExercises();
 
-  // Filter exercises
-  const filteredExercises = allExercises.filter(exercise => {
-    const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMuscleGroup = selectedMuscleGroups.length === 0 || 
-      selectedMuscleGroups.some(group => 
-        exercise.muscleGroup.toLowerCase().includes(group.toLowerCase()) ||
-        group.toLowerCase().includes(exercise.muscleGroup.toLowerCase())
-      );
-    const matchesForceType = selectedForceTypes.length === 0 || 
-      selectedForceTypes.some(type => 
-        exercise.forceType.toLowerCase().includes(type.toLowerCase()) ||
-        type.toLowerCase().includes(exercise.forceType.toLowerCase())
-      );
-    const matchesFavorites = !showFavorites || exercise.isFavorite === true;
-    
-    return matchesSearch && matchesMuscleGroup && matchesForceType && matchesFavorites;
-  });
+  // Filter exercises with improved favorites handling and alphabetical sorting
+  const filteredExercises = allExercises
+    .filter(exercise => {
+      // Search term filter
+      const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Muscle group filter
+      const matchesMuscleGroup = selectedMuscleGroups.length === 0 || 
+        selectedMuscleGroups.some(group => 
+          exercise.muscleGroup.toLowerCase().includes(group.toLowerCase()) ||
+          group.toLowerCase().includes(exercise.muscleGroup.toLowerCase())
+        );
+      
+      // Force type filter
+      const matchesForceType = selectedForceTypes.length === 0 || 
+        selectedForceTypes.some(type => 
+          exercise.forceType.toLowerCase().includes(type.toLowerCase()) ||
+          type.toLowerCase().includes(exercise.forceType.toLowerCase())
+        );
+      
+      // Favorites filter - only show favorites when filter is active
+      const matchesFavorites = !showFavorites || exercise.isFavorite === true;
+      
+      return matchesSearch && matchesMuscleGroup && matchesForceType && matchesFavorites;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name)); // Always sort alphabetically
 
   // Selection handlers
   const handleSelectExercise = (exerciseId: string) => {
@@ -95,9 +103,12 @@ const ExerciseLibrary = () => {
 
   // Exercise handlers
   const handleToggleFavorite = (exerciseId: string) => {
-    console.log('Toggling favorite for exercise ID:', exerciseId);
     const exercise = allExercises.find(ex => ex.id === exerciseId);
-    console.log('Found exercise:', exercise?.name);
+    console.log('ExerciseLibrary - Toggle favorite clicked:', {
+      exerciseId,
+      exerciseName: exercise?.name || 'Unknown',
+      currentIsFavorite: exercise?.isFavorite || false
+    });
     toggleFavorite(exerciseId);
   };
 

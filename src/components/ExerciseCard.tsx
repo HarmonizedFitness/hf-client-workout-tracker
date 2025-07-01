@@ -25,11 +25,21 @@ const ExerciseCard = ({
   onDelete 
 }: ExerciseCardProps) => {
   const isCustomExercise = !!exercise.createdByTrainerId;
+  const isFavorite = exercise.isFavorite === true;
+
+  const handleToggleFavorite = () => {
+    console.log('ExerciseCard - Star clicked:', {
+      exerciseId: exercise.id,
+      exerciseName: exercise.name,
+      currentIsFavorite: isFavorite
+    });
+    onToggleFavorite(exercise.id);
+  };
 
   return (
     <Card className={`hover:shadow-md transition-all duration-200 relative group ${
       isSelected ? 'ring-2 ring-burnt-orange bg-accent/10' : ''
-    } ${exercise.isFavorite ? 'ring-1 ring-yellow-400/50 bg-yellow-50/20 dark:bg-yellow-900/10' : ''}`}>
+    } ${isFavorite ? 'ring-1 ring-yellow-400/50 bg-yellow-50/20 dark:bg-yellow-900/10' : ''}`}>
       <CardContent className="p-3">
         {/* Selection Checkbox */}
         <div className="absolute top-2 left-2 z-10">
@@ -46,11 +56,11 @@ const ExerciseCard = ({
             variant="ghost"
             size="icon"
             className="h-6 w-6 hover:bg-accent p-0"
-            onClick={() => onToggleFavorite(exercise.id)}
+            onClick={handleToggleFavorite}
           >
             <Star 
-              className={`h-4 w-4 ${
-                exercise.isFavorite 
+              className={`h-4 w-4 transition-colors ${
+                isFavorite 
                   ? 'fill-yellow-400 text-yellow-400' 
                   : 'text-muted-foreground hover:text-yellow-400'
               }`}
@@ -75,7 +85,7 @@ const ExerciseCard = ({
         <div className="space-y-3 mt-4">
           {/* Exercise Name - Centered and Larger Font */}
           <h3 className={`font-semibold text-lg leading-tight text-center px-4 ${
-            exercise.isFavorite ? 'text-yellow-700 dark:text-yellow-300' : ''
+            isFavorite ? 'text-yellow-700 dark:text-yellow-300' : ''
           }`}>
             {exercise.name}
             {isCustomExercise && (

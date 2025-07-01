@@ -57,10 +57,19 @@ export const useExercises = () => {
     mutationFn: async (exerciseId: string) => {
       if (!trainer?.id) throw new Error('No trainer found');
 
-      const isFavorite = trainerFavorites.includes(exerciseId);
+      // Find the exercise to get its current state
+      const exercise = allExercises.find(ex => ex.id === exerciseId);
+      const currentIsFavorite = trainerFavorites.includes(exerciseId);
       
-      if (isFavorite) {
-        // Remove favorite - delete the trainer_id association
+      console.log('Toggle favorite - Before mutation:', {
+        exerciseName: exercise?.name || 'Unknown',
+        exerciseId,
+        currentIsFavorite,
+        trainerId: trainer.id
+      });
+
+      if (currentIsFavorite) {
+        // Remove favorite - clear trainer_id and set is_favorite to false
         const { error } = await supabase
           .from('exercises')
           .update({ 
@@ -71,8 +80,16 @@ export const useExercises = () => {
           .eq('trainer_id', trainer.id);
 
         if (error) throw error;
+        
+        console.log('Toggle favorite - After mutation (removed):', {
+          exerciseName: exercise?.name || 'Unknown',
+          exerciseId,
+          newIsFavorite: false
+        });
+        
+        return { exerciseId, isFavorite: false };
       } else {
-        // Add favorite - set trainer_id and is_favorite
+        // Add favorite - set trainer_id and is_favorite to true
         const { error } = await supabase
           .from('exercises')
           .update({ 
@@ -82,16 +99,29 @@ export const useExercises = () => {
           .eq('id', exerciseId);
 
         if (error) throw error;
+        
+        console.log('Toggle favorite - After mutation (added):', {
+          exerciseName: exercise?.name || 'Unknown',
+          exerciseId,
+          newIsFavorite: true
+        });
+        
+        return { exerciseId, isFavorite: true };
       }
-
-      return { exerciseId, isFavorite: !isFavorite };
     },
     onSuccess: (data) => {
+      // Invalidate queries to trigger re-fetch
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
       queryClient.invalidateQueries({ queryKey: ['trainer-favorites'] });
       
       const exercise = allExercises.find(ex => ex.id === data.exerciseId);
       const exerciseName = exercise?.name || 'Exercise';
+      
+      console.log('Toggle favorite - Success callback:', {
+        exerciseName,
+        exerciseId: data.exerciseId,
+        isFavorite: data.isFavorite
+      });
       
       toast({
         title: data.isFavorite ? "Added to Favorites" : "Removed from Favorites",
@@ -99,12 +129,12 @@ export const useExercises = () => {
       });
     },
     onError: (error) => {
+      console.error('Toggle favorite - Error:', error);
       toast({
         title: "Error",
         description: "Failed to update favorite status. Please try again.",
         variant: "destructive",
       });
-      console.error('Error toggling favorite:', error);
     },
   });
 
@@ -219,19 +249,21 @@ export const useExercises = () => {
     },
   });
 
-  // Map exercises to the format expected by the UI
-  const mappedExercises = allExercises.map(ex => ({
-    id: ex.id,
-    name: ex.name,
-    forceType: ex.force_type as any,
-    muscleGroup: ex.muscle_group as any,
-    notes: ex.notes,
-    isFavorite: trainerFavorites.includes(ex.id),
-    dbId: ex.id,
-    isPublic: ex.is_public,
-    createdByTrainerId: ex.created_by_trainer_id,
-    trainerId: ex.trainer_id,
-  }));
+  // Map exercises to the format expected by the UI and sort alphabetically
+  const mappedExercises = allExercises
+    .map(ex => ({
+      id: ex.id,
+      name: ex.name,
+      forceType: ex.force_type as any,
+      muscleGroup: ex.muscle_group as any,
+      notes: ex.notes,
+      isFavorite: trainerFavorites.includes(ex.id),
+      dbId: ex.id,
+      isPublic: ex.is_public,
+      createdByTrainerId: ex.created_by_trainer_id,
+      trainerId: ex.trainer_id,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
 
   return {
     allExercises: mappedExercises,
