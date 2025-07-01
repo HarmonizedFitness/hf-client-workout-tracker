@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -71,6 +70,11 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
     }, 100);
   };
 
+  const handleFavoritesToggle = (checked: boolean | "indeterminate") => {
+    // Convert CheckedState to boolean
+    setShowFavoritesOnly(checked === true);
+  };
+
   // Filter exercises based on search term and favorites toggle
   const filteredExercises = allExercises
     .filter(exercise => {
@@ -119,7 +123,7 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
             <Checkbox
               id="favorites-toggle"
               checked={showFavoritesOnly}
-              onCheckedChange={setShowFavoritesOnly}
+              onCheckedChange={handleFavoritesToggle}
               className="data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500"
             />
             <Label htmlFor="favorites-toggle" className="flex items-center gap-2 cursor-pointer">
