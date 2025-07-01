@@ -1,15 +1,12 @@
 
 import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Plus, Dumbbell } from 'lucide-react';
+import { Dumbbell } from 'lucide-react';
 import { Exercise } from '@/types/exercise';
-import ExerciseFilters from '@/components/ExerciseFilters';
 import ExerciseGrid from '@/components/ExerciseGrid';
-import BulkActionsBar from '@/components/BulkActionsBar';
-import AddExerciseDialog from '@/components/AddExerciseDialog';
-import EditExerciseDialog from '@/components/EditExerciseDialog';
-import DeleteExerciseDialog from '@/components/DeleteExerciseDialog';
-import CreateWorkoutDialog from '@/components/CreateWorkoutDialog';
+import ExerciseLibraryHeader from '@/components/ExerciseLibraryHeader';
+import ExerciseLibraryFilters from '@/components/ExerciseLibraryFilters';
+import ExerciseLibraryActions from '@/components/ExerciseLibraryActions';
+import ExerciseLibraryDialogs from '@/components/ExerciseLibraryDialogs';
 import PageLayout from '@/components/PageLayout';
 import { useExercises } from '@/hooks/useExercises';
 
@@ -27,11 +24,16 @@ const forceTypes = [
 ];
 
 const ExerciseLibrary = () => {
+  // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
   const [selectedForceTypes, setSelectedForceTypes] = useState<string[]>([]);
   const [showFavorites, setShowFavorites] = useState(false);
+  
+  // Selection state
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
+  
+  // Dialog states
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -52,6 +54,7 @@ const ExerciseLibrary = () => {
     isLoading
   } = useExercises();
 
+  // Filter exercises
   const filteredExercises = allExercises.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMuscleGroup = selectedMuscleGroups.length === 0 || 
@@ -69,6 +72,7 @@ const ExerciseLibrary = () => {
     return matchesSearch && matchesMuscleGroup && matchesForceType && matchesFavorites;
   });
 
+  // Selection handlers
   const handleSelectExercise = (exerciseId: string) => {
     const exercise = allExercises.find(ex => ex.id === exerciseId);
     if (!exercise) return;
@@ -81,29 +85,6 @@ const ExerciseLibrary = () => {
     }
   };
 
-  const handleToggleFavorite = (exerciseId: string) => {
-    console.log('Toggling favorite for exercise ID:', exerciseId);
-    const exercise = allExercises.find(ex => ex.id === exerciseId);
-    console.log('Found exercise:', exercise?.name);
-    toggleFavorite(exerciseId);
-  };
-
-  const handleEditExercise = (exercise: Exercise) => {
-    // Only allow editing of custom exercises created by trainer
-    if (exercise.createdByTrainerId) {
-      setExerciseToEdit(exercise);
-      setShowEditDialog(true);
-    }
-  };
-
-  const handleDeleteExercise = (exercise: Exercise) => {
-    // Only allow deleting of custom exercises created by trainer
-    if (exercise.createdByTrainerId) {
-      setExerciseToDelete(exercise);
-      setShowDeleteDialog(true);
-    }
-  };
-
   const handleSelectAll = () => {
     setSelectedExercises(filteredExercises);
   };
@@ -112,17 +93,29 @@ const ExerciseLibrary = () => {
     setSelectedExercises([]);
   };
 
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setSelectedMuscleGroups([]);
-    setSelectedForceTypes([]);
-    setShowFavorites(false);
+  // Exercise handlers
+  const handleToggleFavorite = (exerciseId: string) => {
+    console.log('Toggling favorite for exercise ID:', exerciseId);
+    const exercise = allExercises.find(ex => ex.id === exerciseId);
+    console.log('Found exercise:', exercise?.name);
+    toggleFavorite(exerciseId);
   };
 
-  const handleCreateWorkout = () => {
-    setShowCreateWorkoutDialog(true);
+  const handleEditExercise = (exercise: Exercise) => {
+    if (exercise.createdByTrainerId) {
+      setExerciseToEdit(exercise);
+      setShowEditDialog(true);
+    }
   };
 
+  const handleDeleteExercise = (exercise: Exercise) => {
+    if (exercise.createdByTrainerId) {
+      setExerciseToDelete(exercise);
+      setShowDeleteDialog(true);
+    }
+  };
+
+  // Dialog handlers
   const handleAddExercise = (exerciseData: {
     name: string;
     forceType: string;
@@ -157,6 +150,18 @@ const ExerciseLibrary = () => {
     }
   };
 
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedMuscleGroups([]);
+    setSelectedForceTypes([]);
+    setShowFavorites(false);
+  };
+
+  const handleCreateWorkout = () => {
+    setShowCreateWorkoutDialog(true);
+  };
+
+  // Computed values
   const selectedExerciseIds = new Set(selectedExercises.map(ex => ex.id));
   const favoritesCount = allExercises.filter(ex => ex.isFavorite === true).length;
 
@@ -176,40 +181,29 @@ const ExerciseLibrary = () => {
   return (
     <PageLayout>
       <div className="space-y-6">
-        <div className="text-center">
-          <Dumbbell className="h-12 w-12 text-burnt-orange mx-auto mb-4" />
-          <h1 className="text-3xl font-bold mb-2">Exercise Library</h1>
-          <p className="text-muted-foreground">Browse and manage your exercise collection</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            {allExercises.length} total exercises
-            {favoritesCount > 0 && (
-              <span className="ml-2">• {favoritesCount} favorite{favoritesCount !== 1 ? 's' : ''}</span>
-            )}
-          </p>
-        </div>
+        <ExerciseLibraryHeader
+          totalExercises={allExercises.length}
+          favoritesCount={favoritesCount}
+          onAddExercise={() => setShowAddDialog(true)}
+          isAddingExercise={isAddingExercise}
+        />
 
-        <div className="flex justify-end">
-          <Button onClick={() => setShowAddDialog(true)} disabled={isAddingExercise}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Custom Exercise
-          </Button>
-        </div>
-
-        <ExerciseFilters
+        <ExerciseLibraryFilters
           searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
+          setSearchTerm={setSearchTerm}
           selectedMuscleGroups={selectedMuscleGroups}
-          onMuscleGroupsChange={setSelectedMuscleGroups}
+          setSelectedMuscleGroups={setSelectedMuscleGroups}
           selectedForceTypes={selectedForceTypes}
-          onForceTypesChange={setSelectedForceTypes}
+          setSelectedForceTypes={setSelectedForceTypes}
           showFavorites={showFavorites}
-          onShowFavoritesChange={setShowFavorites}
+          setShowFavorites={setShowFavorites}
           totalExercises={allExercises.length}
           filteredCount={filteredExercises.length}
         />
 
-        <BulkActionsBar
-          selectedCount={selectedExercises.length}
+        <ExerciseLibraryActions
+          selectedExercises={selectedExercises}
+          filteredExercises={filteredExercises}
           onSelectAll={handleSelectAll}
           onClearSelection={handleClearSelection}
           onCreateWorkout={handleCreateWorkout}
@@ -226,39 +220,26 @@ const ExerciseLibrary = () => {
           totalCount={allExercises.length}
         />
 
-        <AddExerciseDialog
-          open={showAddDialog}
-          onOpenChange={setShowAddDialog}
+        <ExerciseLibraryDialogs
+          showAddDialog={showAddDialog}
+          setShowAddDialog={setShowAddDialog}
           onAddExercise={handleAddExercise}
-          isLoading={isAddingExercise}
-        />
-
-        <EditExerciseDialog
-          exercise={exerciseToEdit}
-          isOpen={showEditDialog}
-          onClose={() => {
-            setShowEditDialog(false);
-            setExerciseToEdit(null);
-          }}
-          onSave={handleUpdateExercise}
+          isAddingExercise={isAddingExercise}
+          showEditDialog={showEditDialog}
+          setShowEditDialog={setShowEditDialog}
+          exerciseToEdit={exerciseToEdit}
+          setExerciseToEdit={setExerciseToEdit}
+          onUpdateExercise={handleUpdateExercise}
           muscleGroups={muscleGroups}
           forceTypes={forceTypes}
-        />
-
-        <DeleteExerciseDialog
-          exercise={exerciseToDelete}
-          isOpen={showDeleteDialog}
-          onClose={() => {
-            setShowDeleteDialog(false);
-            setExerciseToDelete(null);
-          }}
-          onConfirm={handleConfirmDelete}
-          isDeleting={isDeletingExercise}
-        />
-
-        <CreateWorkoutDialog
-          open={showCreateWorkoutDialog}
-          onOpenChange={setShowCreateWorkoutDialog}
+          showDeleteDialog={showDeleteDialog}
+          setShowDeleteDialog={setShowDeleteDialog}
+          exerciseToDelete={exerciseToDelete}
+          setExerciseToDelete={setExerciseToDelete}
+          onConfirmDelete={handleConfirmDelete}
+          isDeletingExercise={isDeletingExercise}
+          showCreateWorkoutDialog={showCreateWorkoutDialog}
+          setShowCreateWorkoutDialog={setShowCreateWorkoutDialog}
           selectedExercises={selectedExercises}
           onClearSelection={handleClearSelection}
         />
