@@ -1,16 +1,16 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import { getMuscleGroupColor } from '@/utils/muscleGroupColors';
-import { Plus, Search, X, Star } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useExercises } from '@/hooks/useExercises';
 import AddExerciseDialog from './AddExerciseDialog';
+import FavoritesToggle from './FavoritesToggle';
+import ExerciseSearchPopover from './ExerciseSearchPopover';
+import ExerciseClearFilters from './ExerciseClearFilters';
+import ExerciseResultsSummary from './ExerciseResultsSummary';
 
 interface ExerciseSelectorProps {
   onExerciseAdd: (exerciseId: string) => void;
@@ -108,6 +108,8 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
     );
   }
 
+  const favoritesCount = allExercises.filter(ex => ex.isFavorite === true).length;
+
   return (
     <>
       <Card>
@@ -118,105 +120,26 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Favorites Toggle */}
-          <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
-            <Checkbox
-              id="favorites-toggle"
-              checked={showFavoritesOnly}
-              onCheckedChange={handleFavoritesToggle}
-              className="data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500"
-            />
-            <Label htmlFor="favorites-toggle" className="flex items-center gap-2 cursor-pointer">
-              <Star className={`h-4 w-4 ${showFavoritesOnly ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
-              Show Favorites Only
-              {showFavoritesOnly && (
-                <Badge variant="secondary" className="text-xs">
-                  {allExercises.filter(ex => ex.isFavorite === true).length} favorites
-                </Badge>
-              )}
-            </Label>
-          </div>
+          <FavoritesToggle
+            showFavoritesOnly={showFavoritesOnly}
+            onToggle={handleFavoritesToggle}
+            favoritesCount={favoritesCount}
+          />
 
           <div>
             <Label>Select or Search Exercise</Label>
             <div className="flex gap-2 mt-2">
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="flex-1 justify-between h-12 text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Search className="h-4 w-4" />
-                      <span className="truncate">
-                        {searchValue ? `Search: "${searchValue}"` : 
-                         showFavoritesOnly ? "Search favorites..." : "Search exercises..."}
-                      </span>
-                    </div>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0" align="start">
-                  <Command>
-                    <CommandInput 
-                      placeholder={showFavoritesOnly ? "Search favorites..." : "Search exercises..."} 
-                      value={searchValue}
-                      onValueChange={setSearchValue}
-                      className="h-12"
-                    />
-                    <CommandList className="max-h-[300px]">
-                      <CommandEmpty>
-                        <div className="py-6 text-center">
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {showFavoritesOnly ? 
-                              "No favorite exercises found" : 
-                              "No exercises found"
-                            }
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setOpen(false);
-                              setShowAddDialog(true);
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Create New Exercise
-                          </Button>
-                        </div>
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {filteredExercises.map((exercise) => (
-                          <CommandItem
-                            key={exercise.id}
-                            onSelect={() => handleAddExercise(exercise.id)}
-                            className="py-4 cursor-pointer"
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-3">
-                                <span className="font-medium">{exercise.name}</span>
-                                <Badge className={`${getMuscleGroupColor(exercise.muscleGroup)} text-xs`}>
-                                  {exercise.muscleGroup}
-                                </Badge>
-                                {exercise.isFavorite && (
-                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                )}
-                              </div>
-                              {existingExerciseIds.includes(exercise.id) && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Added
-                                </Badge>
-                              )}
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <ExerciseSearchPopover
+                open={open}
+                onOpenChange={setOpen}
+                searchValue={searchValue}
+                onSearchChange={setSearchValue}
+                showFavoritesOnly={showFavoritesOnly}
+                filteredExercises={filteredExercises}
+                existingExerciseIds={existingExerciseIds}
+                onExerciseAdd={handleAddExercise}
+                onShowAddDialog={() => setShowAddDialog(true)}
+              />
               
               <Button
                 onClick={() => setShowAddDialog(true)}
@@ -228,37 +151,18 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
               </Button>
             </div>
             
-            {/* Clear filters section */}
-            <div className="flex items-center gap-2 mt-2">
-              {searchValue && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSearchValue('')}
-                  className="h-8"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Clear search
-                </Button>
-              )}
-              {showFavoritesOnly && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFavoritesOnly(false)}
-                  className="h-8"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Show all exercises
-                </Button>
-              )}
-            </div>
+            <ExerciseClearFilters
+              searchValue={searchValue}
+              showFavoritesOnly={showFavoritesOnly}
+              onClearSearch={() => setSearchValue('')}
+              onClearFavorites={() => setShowFavoritesOnly(false)}
+            />
 
-            {/* Results summary */}
-            <div className="text-xs text-muted-foreground mt-2">
-              Showing {filteredExercises.length} of {allExercises.length} exercises
-              {showFavoritesOnly && ` (favorites only)`}
-            </div>
+            <ExerciseResultsSummary
+              filteredCount={filteredExercises.length}
+              totalCount={allExercises.length}
+              showFavoritesOnly={showFavoritesOnly}
+            />
           </div>
         </CardContent>
       </Card>
