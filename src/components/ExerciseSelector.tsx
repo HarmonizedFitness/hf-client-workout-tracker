@@ -61,7 +61,12 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
       notes: exercise.notes,
     });
     
-    setShowAddDialog(false);
+    // Close dialog on successful submission
+    setTimeout(() => {
+      if (!isAddingExercise) {
+        setShowAddDialog(false);
+      }
+    }, 1000);
   };
 
   const handleFavoritesToggle = (checked: boolean | "indeterminate") => {

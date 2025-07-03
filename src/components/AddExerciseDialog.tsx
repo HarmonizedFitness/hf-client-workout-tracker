@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from 'lucide-react';
 
 const muscleGroups = [
   'Back', 'Chest', 'Quads', 'Hamstrings', 'Glutes', 'Shoulders', 
@@ -58,6 +59,13 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
   const handleSubmit = () => {
     if (!validateForm()) return;
 
+    console.log('Submitting exercise with data:', {
+      name: exerciseName.trim(),
+      forceType: selectedForceType,
+      muscleGroup: selectedMuscleGroup,
+      notes: notes.trim() || undefined,
+    });
+
     onAddExercise({
       name: exerciseName.trim(),
       forceType: selectedForceType,
@@ -65,27 +73,33 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
       notes: notes.trim() || undefined,
     });
 
-    // Clear form only after successful submission
+    // Clear form after successful submission (when loading stops)
     if (!isLoading) {
-      setExerciseName('');
-      setSelectedMuscleGroup('');
-      setSelectedForceType('');
-      setNotes('');
-      setErrors({});
+      resetForm();
     }
+  };
+
+  const resetForm = () => {
+    setExerciseName('');
+    setSelectedMuscleGroup('');
+    setSelectedForceType('');
+    setNotes('');
+    setErrors({});
   };
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen && !isLoading) {
-      // Clear form when closing dialog
-      setExerciseName('');
-      setSelectedMuscleGroup('');
-      setSelectedForceType('');
-      setNotes('');
-      setErrors({});
+      resetForm();
     }
     onOpenChange(newOpen);
   };
+
+  // Reset form when dialog closes successfully after adding
+  const handleAddSuccess = () => {
+    resetForm();
+  };
+
+  const isFormValid = exerciseName.trim() && selectedMuscleGroup && selectedForceType;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -205,10 +219,17 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
           </Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={isLoading || !exerciseName.trim() || !selectedMuscleGroup || !selectedForceType}
+            disabled={isLoading || !isFormValid}
             className="h-12"
           >
-            {isLoading ? "Adding..." : "Add Exercise"}
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              "Add Exercise"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

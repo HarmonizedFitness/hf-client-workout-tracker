@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainer } from './useTrainer';
@@ -192,7 +191,7 @@ export const useExercises = () => {
         throw new Error('Muscle group is required');
       }
 
-      // Insert the new exercise
+      // Insert the new exercise - DO NOT include the id field, let it auto-generate
       const { data, error } = await supabase
         .from('exercises')
         .insert({
@@ -209,7 +208,7 @@ export const useExercises = () => {
 
       if (error) {
         console.error('Error adding exercise:', error);
-        throw error;
+        throw new Error(error.message || 'Failed to add exercise');
       }
 
       console.log('New exercise created:', data);
@@ -217,16 +216,17 @@ export const useExercises = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      console.log('Exercise added successfully:', data.name);
       toast({
-        title: "Exercise Added",
-        description: `${data.name} has been added to your library.`,
+        title: "Exercise Added Successfully",
+        description: `${data.name} has been added to your library and is now available for use.`,
       });
     },
     onError: (error) => {
       console.error('Add exercise error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to add exercise. Please try again.",
+        title: "Error Adding Exercise",
+        description: error.message || "Failed to add exercise. Please check your input and try again.",
         variant: "destructive",
       });
     },
