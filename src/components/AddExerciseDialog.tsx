@@ -56,7 +56,7 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
     console.log('Submitting exercise with data:', {
@@ -66,6 +66,7 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
       notes: notes.trim() || undefined,
     });
 
+    // Call the mutation function
     onAddExercise({
       name: exerciseName.trim(),
       forceType: selectedForceType,
@@ -73,10 +74,8 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
       notes: notes.trim() || undefined,
     });
 
-    // Clear form after successful submission (when loading stops)
-    if (!isLoading) {
-      resetForm();
-    }
+    // Reset form after submission attempt
+    resetForm();
   };
 
   const resetForm = () => {
@@ -92,11 +91,6 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
       resetForm();
     }
     onOpenChange(newOpen);
-  };
-
-  // Reset form when dialog closes successfully after adding
-  const handleAddSuccess = () => {
-    resetForm();
   };
 
   const isFormValid = exerciseName.trim() && selectedMuscleGroup && selectedForceType;

@@ -24,12 +24,11 @@ export const useExercises = () => {
     queryFn: async () => {
       console.log('Fetching exercises with trainer ID:', trainer?.id);
       
-      // Query all public exercises and trainer's custom exercises
-      // Remove row limit by using .range(0, 1499) to get up to 1500 exercises
+      // Query both public exercises AND trainer's custom exercises
       const { data, error } = await supabase
         .from('exercises')
         .select('*')
-        .eq('is_public', true)
+        .or(`is_public.eq.true,created_by_trainer_id.eq.${trainer?.id}`)
         .range(0, 1499);
 
       if (error) {
@@ -70,7 +69,6 @@ export const useExercises = () => {
     mutationFn: async (exerciseId: string) => {
       if (!trainer?.id) throw new Error('No trainer found');
 
-      // Find the exercise to get its current state
       const exercise = allExercises.find(ex => ex.id === exerciseId);
       const currentIsFavorite = trainerFavorites.includes(exerciseId);
       
@@ -82,7 +80,6 @@ export const useExercises = () => {
       });
 
       if (currentIsFavorite) {
-        // Remove favorite - only update the specific exercise by ID
         const { error } = await supabase
           .from('exercises')
           .update({ 
@@ -97,16 +94,8 @@ export const useExercises = () => {
           throw error;
         }
         
-        console.log('Toggle favorite - After mutation (removed):', {
-          exerciseName: exercise?.name || 'Unknown',
-          exerciseId,
-          newIsFavorite: false
-        });
-        
         return { exerciseId, isFavorite: false };
       } else {
-        // Add to favorites - only update the specific exercise by ID
-        // First check if this exercise already has a trainer_id to prevent duplicates
         const { data: existingFavorite } = await supabase
           .from('exercises')
           .select('id, trainer_id, is_favorite')
@@ -131,28 +120,15 @@ export const useExercises = () => {
           throw error;
         }
         
-        console.log('Toggle favorite - After mutation (added):', {
-          exerciseName: exercise?.name || 'Unknown',
-          exerciseId,
-          newIsFavorite: true
-        });
-        
         return { exerciseId, isFavorite: true };
       }
     },
     onSuccess: (data) => {
-      // Invalidate queries to trigger re-fetch
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
       queryClient.invalidateQueries({ queryKey: ['trainer-favorites'] });
       
       const exercise = allExercises.find(ex => ex.id === data.exerciseId);
       const exerciseName = exercise?.name || 'Exercise';
-      
-      console.log('Toggle favorite - Success callback:', {
-        exerciseName,
-        exerciseId: data.exerciseId,
-        isFavorite: data.isFavorite
-      });
       
       toast({
         title: data.isFavorite ? "Added to Favorites" : "Removed from Favorites",
@@ -191,7 +167,7 @@ export const useExercises = () => {
         throw new Error('Muscle group is required');
       }
 
-      // Insert the new exercise - DO NOT include the id field, let it auto-generate
+      // Insert the new exercise - let ID auto-generate
       const { data, error } = await supabase
         .from('exercises')
         .insert({
@@ -215,7 +191,10 @@ export const useExercises = () => {
       return data;
     },
     onSuccess: (data) => {
+      // Invalidate both exercises and favorites queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      queryClient.invalidateQueries({ queryKey: ['trainer-favorites'] });
+      
       console.log('Exercise added successfully:', data.name);
       toast({
         title: "Exercise Added Successfully",
@@ -317,7 +296,7 @@ export const useExercises = () => {
       createdByTrainerId: ex.created_by_trainer_id,
       trainerId: ex.trainer_id,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name)); // Always sort alphabetically by name
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   console.log('Mapped exercises count:', mappedExercises.length);
   console.log('Favorites count:', mappedExercises.filter(ex => ex.isFavorite).length);

@@ -62,32 +62,25 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
     });
     
     // Close dialog on successful submission
-    setTimeout(() => {
-      if (!isAddingExercise) {
-        setShowAddDialog(false);
-      }
-    }, 1000);
+    setShowAddDialog(false);
   };
 
   const handleFavoritesToggle = (checked: boolean | "indeterminate") => {
-    // Convert CheckedState to boolean
     setShowFavoritesOnly(checked === true);
   };
 
   // Filter exercises based on search term and favorites toggle
   const filteredExercises = allExercises
     .filter(exercise => {
-      // Search term filter - matches name or muscle group
       const matchesSearch = !searchValue || 
         exercise.name.toLowerCase().includes(searchValue.toLowerCase()) ||
         exercise.muscleGroup.toLowerCase().includes(searchValue.toLowerCase());
       
-      // Favorites filter - only show favorites when toggle is active
       const matchesFavorites = !showFavoritesOnly || exercise.isFavorite === true;
       
       return matchesSearch && matchesFavorites;
     })
-    .sort((a, b) => a.name.localeCompare(b.name)); // Always sort alphabetically
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   console.log('ExerciseSelector - Filtered exercises:', {
     total: allExercises.length,
