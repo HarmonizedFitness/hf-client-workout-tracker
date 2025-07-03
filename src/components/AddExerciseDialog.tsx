@@ -36,9 +36,27 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
   const [selectedForceType, setSelectedForceType] = useState('');
   const [notes, setNotes] = useState('');
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    if (!exerciseName.trim()) {
+      newErrors.name = 'Exercise name is required';
+    }
+    if (!selectedMuscleGroup) {
+      newErrors.muscleGroup = 'Muscle group is required';
+    }
+    if (!selectedForceType) {
+      newErrors.forceType = 'Force type is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = () => {
-    if (!exerciseName.trim() || !selectedMuscleGroup || !selectedForceType) return;
+    if (!validateForm()) return;
 
     onAddExercise({
       name: exerciseName.trim(),
@@ -47,15 +65,30 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
       notes: notes.trim() || undefined,
     });
 
-    // Clear form
-    setExerciseName('');
-    setSelectedMuscleGroup('');
-    setSelectedForceType('');
-    setNotes('');
+    // Clear form only after successful submission
+    if (!isLoading) {
+      setExerciseName('');
+      setSelectedMuscleGroup('');
+      setSelectedForceType('');
+      setNotes('');
+      setErrors({});
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && !isLoading) {
+      // Clear form when closing dialog
+      setExerciseName('');
+      setSelectedMuscleGroup('');
+      setSelectedForceType('');
+      setNotes('');
+      setErrors({});
+    }
+    onOpenChange(newOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg">Add Custom Exercise</DialogTitle>
@@ -66,20 +99,42 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
         
         <div className="space-y-6">
           <div>
-            <Label htmlFor="exercise-name" className="text-base">Exercise Name</Label>
+            <Label htmlFor="exercise-name" className="text-base">
+              Exercise Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="exercise-name"
               value={exerciseName}
-              onChange={(e) => setExerciseName(e.target.value)}
+              onChange={(e) => {
+                setExerciseName(e.target.value);
+                if (errors.name) {
+                  setErrors(prev => ({ ...prev, name: '' }));
+                }
+              }}
               placeholder="Enter exercise name..."
-              className="h-12 mt-2"
+              className={`h-12 mt-2 ${errors.name ? 'border-red-500' : ''}`}
+              disabled={isLoading}
             />
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
           
           <div>
-            <Label htmlFor="muscle-group" className="text-base">Muscle Group</Label>
-            <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
-              <SelectTrigger className="h-12 mt-2">
+            <Label htmlFor="muscle-group" className="text-base">
+              Muscle Group <span className="text-red-500">*</span>
+            </Label>
+            <Select 
+              value={selectedMuscleGroup} 
+              onValueChange={(value) => {
+                setSelectedMuscleGroup(value);
+                if (errors.muscleGroup) {
+                  setErrors(prev => ({ ...prev, muscleGroup: '' }));
+                }
+              }}
+              disabled={isLoading}
+            >
+              <SelectTrigger className={`h-12 mt-2 ${errors.muscleGroup ? 'border-red-500' : ''}`}>
                 <SelectValue placeholder="Select muscle group..." />
               </SelectTrigger>
               <SelectContent>
@@ -90,12 +145,26 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
                 ))}
               </SelectContent>
             </Select>
+            {errors.muscleGroup && (
+              <p className="text-red-500 text-sm mt-1">{errors.muscleGroup}</p>
+            )}
           </div>
 
           <div>
-            <Label htmlFor="force-type" className="text-base">Force Type</Label>
-            <Select value={selectedForceType} onValueChange={setSelectedForceType}>
-              <SelectTrigger className="h-12 mt-2">
+            <Label htmlFor="force-type" className="text-base">
+              Force Type <span className="text-red-500">*</span>
+            </Label>
+            <Select 
+              value={selectedForceType} 
+              onValueChange={(value) => {
+                setSelectedForceType(value);
+                if (errors.forceType) {
+                  setErrors(prev => ({ ...prev, forceType: '' }));
+                }
+              }}
+              disabled={isLoading}
+            >
+              <SelectTrigger className={`h-12 mt-2 ${errors.forceType ? 'border-red-500' : ''}`}>
                 <SelectValue placeholder="Select force type..." />
               </SelectTrigger>
               <SelectContent>
@@ -106,6 +175,9 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
                 ))}
               </SelectContent>
             </Select>
+            {errors.forceType && (
+              <p className="text-red-500 text-sm mt-1">{errors.forceType}</p>
+            )}
           </div>
 
           <div>
@@ -117,17 +189,23 @@ const AddExerciseDialog = ({ open, onOpenChange, onAddExercise, isLoading }: Add
               placeholder="Add any notes about this exercise..."
               rows={3}
               className="mt-2"
+              disabled={isLoading}
             />
           </div>
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-12">
+          <Button 
+            variant="outline" 
+            onClick={() => handleOpenChange(false)} 
+            className="h-12"
+            disabled={isLoading}
+          >
             Cancel
           </Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={!exerciseName.trim() || !selectedMuscleGroup || !selectedForceType || isLoading}
+            disabled={isLoading || !exerciseName.trim() || !selectedMuscleGroup || !selectedForceType}
             className="h-12"
           >
             {isLoading ? "Adding..." : "Add Exercise"}

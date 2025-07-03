@@ -51,23 +51,17 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
     muscleGroup: string;
     notes?: string;
   }) => {
-    // Convert camelCase to snake_case for the API
+    console.log('Adding new exercise:', exercise);
+    
+    // Use the proper field mapping for the API
     addExercise({
       name: exercise.name,
       force_type: exercise.forceType,
       muscle_group: exercise.muscleGroup,
       notes: exercise.notes,
     });
-    setShowAddDialog(false);
     
-    // After successful creation, the exercise will be available in allExercises
-    // We'll need to find it and add it to the session
-    setTimeout(() => {
-      const newExercise = allExercises.find(ex => ex.name === exercise.name);
-      if (newExercise) {
-        handleAddExercise(newExercise.id);
-      }
-    }, 100);
+    setShowAddDialog(false);
   };
 
   const handleFavoritesToggle = (checked: boolean | "indeterminate") => {
@@ -146,6 +140,7 @@ const ExerciseSelector = ({ onExerciseAdd, existingExerciseIds }: ExerciseSelect
                 variant="outline"
                 className="h-12 px-4"
                 title="Add New Exercise"
+                disabled={isAddingExercise}
               >
                 <Plus className="h-4 w-4" />
               </Button>

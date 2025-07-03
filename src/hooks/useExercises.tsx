@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTrainer } from './useTrainer';
@@ -178,48 +179,56 @@ export const useExercises = () => {
     }) => {
       if (!trainer?.id) throw new Error('No trainer found');
 
-      // Check if exercise already exists to prevent duplicates
-      const { data: existingExercise } = await supabase
-        .from('exercises')
-        .select('id')
-        .eq('name', exercise.name)
-        .eq('created_by_trainer_id', trainer.id)
-        .single();
+      console.log('Adding exercise with data:', exercise);
 
-      if (existingExercise) {
-        console.log('Exercise already exists:', existingExercise.id);
-        return existingExercise;
+      // Validate required fields
+      if (!exercise.name?.trim()) {
+        throw new Error('Exercise name is required');
+      }
+      if (!exercise.force_type?.trim()) {
+        throw new Error('Force type is required');
+      }
+      if (!exercise.muscle_group?.trim()) {
+        throw new Error('Muscle group is required');
       }
 
+      // Insert the new exercise
       const { data, error } = await supabase
         .from('exercises')
         .insert({
-          ...exercise,
+          name: exercise.name.trim(),
+          force_type: exercise.force_type,
+          muscle_group: exercise.muscle_group,
+          notes: exercise.notes?.trim() || null,
           created_by_trainer_id: trainer.id,
-          is_public: false,
+          is_public: false, // Custom exercises are private by default
           is_favorite: false,
         })
         .select()
         .single();
 
-      if (error) throw error;
-      console.log('New exercise created:', data.id);
+      if (error) {
+        console.error('Error adding exercise:', error);
+        throw error;
+      }
+
+      console.log('New exercise created:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
       toast({
         title: "Exercise Added",
-        description: "New exercise has been added to your library.",
+        description: `${data.name} has been added to your library.`,
       });
     },
     onError: (error) => {
+      console.error('Add exercise error:', error);
       toast({
         title: "Error",
-        description: "Failed to add exercise. Please try again.",
+        description: error.message || "Failed to add exercise. Please try again.",
         variant: "destructive",
       });
-      console.error('Error adding exercise:', error);
     },
   });
 
