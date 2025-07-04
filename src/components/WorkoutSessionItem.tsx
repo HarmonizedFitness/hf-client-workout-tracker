@@ -17,6 +17,9 @@ interface WorkoutSessionItemProps {
       weight: number;
       reps: number;
       is_pr: boolean;
+      position?: number;
+      circuit_id?: string | null;
+      exercise_notes?: string | null;
     }>;
   };
   isOpen: boolean;

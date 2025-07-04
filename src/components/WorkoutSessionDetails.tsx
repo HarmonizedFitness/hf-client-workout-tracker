@@ -12,9 +12,9 @@ interface WorkoutSessionDetailsProps {
       weight: number;
       reps: number;
       is_pr: boolean;
-      position: number;
-      circuit_id: string | null;
-      exercise_notes: string | null;
+      position?: number;
+      circuit_id?: string | null;
+      exercise_notes?: string | null;
     }>;
   };
   getExerciseName: (exerciseId: string) => string;
@@ -23,12 +23,12 @@ interface WorkoutSessionDetailsProps {
 const WorkoutSessionDetails = ({ session, getExerciseName }: WorkoutSessionDetailsProps) => {
   // Group sets by exercise and circuit
   const groupedSets = session.workout_sets
-    .sort((a, b) => a.position - b.position)
+    .sort((a, b) => (a.position || 0) - (b.position || 0))
     .reduce((acc, set) => {
       const key = set.circuit_id || set.exercise_id;
       if (!acc[key]) {
         acc[key] = {
-          circuitId: set.circuit_id,
+          circuitId: set.circuit_id || null,
           exercises: {},
         };
       }

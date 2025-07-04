@@ -13,11 +13,11 @@ interface WorkoutExerciseDisplayProps {
     weight: number;
     reps: number;
     is_pr: boolean;
-    position: number;
-    circuit_id: string | null;
-    exercise_notes: string | null;
+    position?: number;
+    circuit_id?: string | null;
+    exercise_notes?: string | null;
   }>;
-  circuitId?: string;
+  circuitId?: string | null;
 }
 
 const WorkoutExerciseDisplay = ({ 
