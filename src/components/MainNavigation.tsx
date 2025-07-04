@@ -13,7 +13,6 @@ const MainNavigation = () => {
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/session', label: 'Log Session', icon: Plus },
     { path: '/workouts', label: 'Workouts', icon: Dumbbell },
-    { path: '/programs', label: 'Programs', icon: BookOpen },
     { path: '/records', label: 'Records', icon: Trophy },
     { path: '/library', label: 'Exercise Library', icon: BookOpen },
   ];
