@@ -19,6 +19,9 @@ interface WorkoutSession {
     reps: number;
     set_number: number;
     is_pr: boolean;
+    position: number;
+    circuit_id: string | null;
+    exercise_notes: string | null;
   }[];
 }
 
@@ -31,6 +34,9 @@ interface SaveSessionData {
     reps: number;
     weight: number;
     isPR: boolean;
+    position: number;
+    circuitId?: string;
+    exerciseNotes?: string;
   }>;
   notes?: string;
 }
@@ -53,7 +59,10 @@ export const useWorkoutSessions = (clientId?: string) => {
             weight,
             reps,
             set_number,
-            is_pr
+            is_pr,
+            position,
+            circuit_id,
+            exercise_notes
           )
         `)
         .eq('client_id', clientId)
@@ -93,7 +102,7 @@ export const useWorkoutSessions = (clientId?: string) => {
 
       if (sessionError) throw sessionError;
 
-      // Insert workout sets
+      // Insert workout sets with enhanced fields
       const setsToInsert = sessionData.sets.map(set => ({
         session_id: session.id,
         exercise_id: set.exerciseId,
@@ -101,6 +110,9 @@ export const useWorkoutSessions = (clientId?: string) => {
         reps: set.reps,
         weight: set.weight,
         is_pr: set.isPR,
+        position: set.position,
+        circuit_id: set.circuitId || null,
+        exercise_notes: set.exerciseNotes || null,
       }));
 
       const { error: setsError } = await supabase
@@ -120,7 +132,10 @@ export const useWorkoutSessions = (clientId?: string) => {
             weight,
             reps,
             set_number,
-            is_pr
+            is_pr,
+            position,
+            circuit_id,
+            exercise_notes
           )
         `)
         .eq('id', session.id)

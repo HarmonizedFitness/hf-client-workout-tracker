@@ -411,30 +411,39 @@ export type Database = {
       }
       workout_sets: {
         Row: {
+          circuit_id: string | null
           created_at: string | null
           exercise_id: string
+          exercise_notes: string | null
           id: string
           is_pr: boolean | null
+          position: number
           reps: number
           session_id: string
           set_number: number
           weight: number
         }
         Insert: {
+          circuit_id?: string | null
           created_at?: string | null
           exercise_id: string
+          exercise_notes?: string | null
           id?: string
           is_pr?: boolean | null
+          position?: number
           reps: number
           session_id: string
           set_number: number
           weight: number
         }
         Update: {
+          circuit_id?: string | null
           created_at?: string | null
           exercise_id?: string
+          exercise_notes?: string | null
           id?: string
           is_pr?: boolean | null
+          position?: number
           reps?: number
           session_id?: string
           set_number?: number

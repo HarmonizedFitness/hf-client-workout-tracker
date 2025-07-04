@@ -12,6 +12,7 @@ interface UseSessionHandlersProps {
   setExerciseEntries: (entries: ExerciseEntry[]) => void;
   sessionNotes: string;
   setIsSaving: (saving: boolean) => void;
+  getNextPosition: () => number;
 }
 
 export const useSessionHandlers = ({
@@ -20,6 +21,7 @@ export const useSessionHandlers = ({
   setExerciseEntries,
   sessionNotes,
   setIsSaving,
+  getNextPosition,
 }: UseSessionHandlersProps) => {
   const { getCurrentPR, getTotalPotentialPRs, checkAndSavePRs } = useSessionPROperations({ client });
   
@@ -40,6 +42,7 @@ export const useSessionHandlers = ({
   } = useSessionExerciseManagement({
     exerciseEntries,
     setExerciseEntries,
+    getNextPosition,
   });
 
   const getTotalCompletedSetsCount = () => getTotalCompletedSets(exerciseEntries);

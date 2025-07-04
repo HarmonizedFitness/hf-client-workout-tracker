@@ -40,11 +40,14 @@ export const useSessionOperations = ({
         reps: number;
         weight: number;
         isPR: boolean;
+        position: number;
+        circuitId?: string;
+        exerciseNotes?: string;
       }> = [];
 
       const today = new Date().toISOString().split('T')[0];
 
-      // Collect all completed sets - weights are already in LBS
+      // Collect all completed sets with enhanced fields
       for (const entry of exerciseEntries) {
         for (const set of entry.sets) {
           if (set.reps && set.weight) {
@@ -55,8 +58,11 @@ export const useSessionOperations = ({
               exerciseId: entry.exerciseId,
               setNumber: set.setNumber,
               reps,
-              weight: weightInLbs, // Store in LBS
+              weight: weightInLbs,
               isPR: false, // We'll update this after checking PRs
+              position: entry.position,
+              circuitId: entry.circuitId,
+              exerciseNotes: entry.exerciseNotes?.trim() || undefined,
             });
           }
         }
@@ -68,7 +74,7 @@ export const useSessionOperations = ({
           description: "Complete at least one set before saving your session.",
           variant: "destructive",
         });
-        return;
+        return false;
       }
 
       console.log('Completed sets collected:', completedSets);
@@ -92,7 +98,7 @@ export const useSessionOperations = ({
         const hasPR = await checkAndSavePRs(
           client.id,
           set.exerciseId,
-          set.weight, // Already in LBS
+          set.weight,
           set.reps,
           set.setNumber,
           today,
@@ -112,7 +118,7 @@ export const useSessionOperations = ({
         description: `Saved ${completedSets.length} sets for ${client.name}${totalPRs > 0 ? ` with ${totalPRs} new PR${totalPRs > 1 ? 's' : ''}!` : '.'}`,
       });
 
-      return true; // Success indicator
+      return true;
 
     } catch (error) {
       console.error('Error saving session:', error);

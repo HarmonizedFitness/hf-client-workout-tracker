@@ -6,11 +6,13 @@ import { ExerciseEntry, IndividualSet } from './useSessionState';
 interface UseSessionExerciseManagementProps {
   exerciseEntries: ExerciseEntry[];
   setExerciseEntries: (entries: ExerciseEntry[]) => void;
+  getNextPosition: () => number;
 }
 
 export const useSessionExerciseManagement = ({
   exerciseEntries,
   setExerciseEntries,
+  getNextPosition,
 }: UseSessionExerciseManagementProps) => {
   const { allExercises } = useExercises();
 
@@ -22,7 +24,9 @@ export const useSessionExerciseManagement = ({
         { setNumber: 2, reps: '', weight: '' },
         { setNumber: 3, reps: '', weight: '' }
       ],
-      collapsed: false
+      collapsed: false,
+      position: getNextPosition(),
+      exerciseNotes: '',
     };
 
     setExerciseEntries([...exerciseEntries, newEntry]);

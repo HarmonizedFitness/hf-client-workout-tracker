@@ -1,14 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Client } from '@/types/exercise';
-import IndividualSetEntry from './IndividualSetEntry';
 import ExerciseSelector from './ExerciseSelector';
 import SessionSummary from './SessionSummary';
 import SessionNotes from './SessionNotes';
 import SessionEmptyState from './SessionEmptyState';
+import ExerciseReorderContainer from './ExerciseReorderContainer';
 import { useSessionState } from '@/hooks/useSessionState';
 import { useSessionHandlers } from '@/hooks/useSessionHandlers';
-import { X } from 'lucide-react';
 
 interface SessionFormProps {
   client: Client;
@@ -24,6 +23,9 @@ const SessionForm = ({ client, preSelectedExercises = [], workoutTemplateId }: S
     setSessionNotes,
     isSaving,
     setIsSaving,
+    selectedExercises,
+    setSelectedExercises,
+    getNextPosition,
   } = useSessionState({ preSelectedExercises });
 
   const {
@@ -43,6 +45,7 @@ const SessionForm = ({ client, preSelectedExercises = [], workoutTemplateId }: S
     setExerciseEntries,
     sessionNotes,
     setIsSaving,
+    getNextPosition,
   });
 
   const onSaveSession = async () => {
@@ -51,6 +54,7 @@ const SessionForm = ({ client, preSelectedExercises = [], workoutTemplateId }: S
       // Clear the form after successful save
       setExerciseEntries([]);
       setSessionNotes('');
+      setSelectedExercises(new Set());
     }
   };
 
@@ -72,42 +76,27 @@ const SessionForm = ({ client, preSelectedExercises = [], workoutTemplateId }: S
         />
       )}
 
-      <div className="space-y-4">
-        {exerciseEntries.map((entry) => {
-          const exercise = getExercise(entry.exerciseId);
-          const currentPR = getCurrentPR(entry.exerciseId);
-          
-          return (
-            <div key={entry.exerciseId} className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeExerciseFromSession(entry.exerciseId)}
-                className="absolute top-3 right-3 z-10 text-red-600 hover:text-red-700 h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <IndividualSetEntry
-                exerciseName={exercise?.name || 'Unknown Exercise'}
-                currentPR={currentPR}
-                onSetsChange={(sets) => updateExerciseSets(entry.exerciseId, sets)}
-                isCollapsed={entry.collapsed}
-                onToggleCollapse={() => toggleExerciseCollapse(entry.exerciseId)}
-              />
-            </div>
-          );
-        })}
-      </div>
+      {exerciseEntries.length > 0 ? (
+        <ExerciseReorderContainer
+          exerciseEntries={exerciseEntries}
+          setExerciseEntries={setExerciseEntries}
+          selectedExercises={selectedExercises}
+          setSelectedExercises={setSelectedExercises}
+          onUpdateExerciseSets={updateExerciseSets}
+          onToggleExerciseCollapse={toggleExerciseCollapse}
+          onRemoveExercise={removeExerciseFromSession}
+          getCurrentPR={getCurrentPR}
+          getExercise={getExercise}
+        />
+      ) : !preSelectedExercises.length && (
+        <SessionEmptyState clientName={client.name} />
+      )}
 
       {exerciseEntries.length > 0 && (
         <SessionNotes 
           notes={sessionNotes}
           onNotesChange={setSessionNotes}
         />
-      )}
-
-      {exerciseEntries.length === 0 && !preSelectedExercises.length && (
-        <SessionEmptyState clientName={client.name} />
       )}
     </div>
   );
