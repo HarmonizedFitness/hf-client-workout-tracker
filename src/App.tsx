@@ -14,6 +14,7 @@ import Session from "./pages/Session";
 import Workouts from "./pages/Workouts";
 import Records from "./pages/Records";
 import ExerciseLibrary from "./pages/ExerciseLibrary";
+import Schedule from "./pages/Schedule";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -75,6 +76,7 @@ const AppRoutes = () => {
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/records" element={<Records />} />
           <Route path="/library" element={<ExerciseLibrary />} />
+          <Route path="/schedule" element={<Schedule />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
